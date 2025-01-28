@@ -34,7 +34,7 @@
         <!-- Main Content -->
         <main class="flex-grow p-6">
             <header class="mb-6">
-                <h2 class="text-3xl font-bold text-gray-800">Medicine Inventory</h2>
+                <h2 class="text-3xl font-bold text-gray-800">Medicine what what/h2>
                 <p class="text-gray-600">Manage the stock and details of medicines.</p>
             </header>
 

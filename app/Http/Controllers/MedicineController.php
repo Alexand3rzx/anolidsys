@@ -64,29 +64,54 @@ class MedicineController extends Controller
         return redirect()->route('medicines.index')->with('success', 'Medicine updated successfully.');
     }
 
-    // Increase stock of a specific medicine
-    public function receive(Medicine $medicine)
+    public function receive(Request $request, Medicine $medicine)
     {
-        $medicine->increment('stock', 1); // Increase stock by 1 (or adjust as needed)
-
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'donor' => 'required|string',
+            'receiver' => 'required|string',
+            'details' => 'nullable|string',
+        ]);
+    
+        // Increase stock
+        $medicine->increment('stock', $request->quantity);
+    
+        // Log transaction
+        $medicine->transactions()->create([
+            'quantity' => $request->quantity,
+            'donor' => $request->donor,
+            'receiver' => $request->receiver,
+            'details' => $request->details,
+            'type' => 'receive',
+        ]);
+    
         return redirect()->route('medicines.index')->with('success', 'Medicine stock increased.');
     }
 
-    // Decrease stock of a specific medicine
-    public function give(Medicine $medicine)
-    {
-        if ($medicine->stock > 0) {
-            $medicine->decrement('stock', 1); // Decrease stock by 1 (or adjust as needed)
-            return redirect()->route('medicines.index')->with('success', 'Medicine stock decreased.');
-        } else {
-            return redirect()->route('medicines.index')->with('error', 'No stock available to give.');
-        }
+    public function give(Request $request, Medicine $medicine)
+{
+    $request->validate([
+        'quantity' => 'required|integer|min:1',
+        'receiver' => 'required|string',
+        'details' => 'nullable|string',
+    ]);
+
+    // Check if enough stock is available
+    if ($medicine->stock < $request->quantity) {
+        return redirect()->route('medicines.index')->with('error', 'Not enough stock available.');
     }
 
-    // Delete a specific medicine from the inventory
-    public function destroy(Medicine $medicine)
-    {
-        $medicine->delete();
-        return redirect()->route('medicines.index')->with('success', 'Medicine deleted successfully.');
-    }
+    // Decrease stock
+    $medicine->decrement('stock', $request->quantity);
+
+    // Log transaction
+    $medicine->transactions()->create([
+        'quantity' => $request->quantity,
+        'receiver' => $request->receiver,
+        'details' => $request->details,
+        'type' => 'give',
+    ]);
+
+    return redirect()->route('medicines.index')->with('success', 'Medicine stock decreased.');
+}
 }

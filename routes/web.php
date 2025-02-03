@@ -36,8 +36,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('medicines', MedicineController::class);
 
     // Receive, Give, Edit, and Delete actions
-    Route::post('medicines/{medicine}/receive', [MedicineController::class, 'receive'])->name('medicines.receive');
-    Route::post('medicines/{medicine}/give', [MedicineController::class, 'give'])->name('medicines.give');
+    //Route::post('medicines/{medicine}/receive', [MedicineController::class, 'receive'])->name('medicines.receive');
+    //Route::post('medicines/{medicine}/give', [MedicineController::class, 'give'])->name('medicines.give');
+
+    Route::post('/medicines/{medicine}/receive', [MedicineController::class, 'receive'])->name('medicines.receive');
+Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])->name('medicines.give');
     Route::get('medicines/{medicine}/edit', [MedicineController::class, 'edit'])->name('medicines.edit');
     Route::delete('medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
 });

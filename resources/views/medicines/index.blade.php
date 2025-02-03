@@ -62,27 +62,21 @@
                         </thead>
                         <tbody>
                             @foreach($medicines as $medicine)
-                                <tr class="border-b">
-                                    <td class="px-4 py-2">{{ $medicine->name }}</td>
-                                    <td class="px-4 py-2">{{ $medicine->details }}</td>
-                                    <td class="px-4 py-2">{{ $medicine->stock }}</td>
-                                    <td class="px-4 py-2">
-                                        <form action="{{ route('medicines.receive', $medicine) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Receive</button>
-                                        </form>
-                                        <form action="{{ route('medicines.give', $medicine) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Give</button>
-                                        </form>
-                                        <a href="{{ route('medicines.edit', $medicine) }}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Edit</a>
-                                        <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
-                                        </form>
-                                    </td>
-                                </tr>
+                            <tr class="border-b">
+    <td class="px-4 py-2">{{ $medicine->name }}</td>
+    <td class="px-4 py-2">{{ $medicine->details }}</td>
+    <td class="px-4 py-2">{{ $medicine->stock }}</td>
+    <td class="px-4 py-2">
+        <button type="button" onclick="openReceiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Receive</button>
+        <button type="button" onclick="openGiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Give</button>
+        <a href="{{ route('medicines.edit', $medicine) }}" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Edit</a>
+        <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+        </form>
+    </td>
+</tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -90,6 +84,102 @@
             </div>
         </main>
     </div>
+
+     <!-- Receive Modal -->
+     <div id="receiveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
+    <div class="bg-white p-6 rounded-lg w-1/3">
+        <h3 class="text-xl font-bold mb-4">Receive Medicine</h3>
+        <form id="receiveForm" action="{{ route('medicines.receive', $medicine) }}" method="POST">
+            @csrf
+            <input type="hidden" name="medicine_id" id="receiveMedicineId">
+            <div class="mb-4">
+                <label class="block text-gray-700">Medicine Name</label>
+                <input type="text" id="receiveMedicineName" class="w-full p-2 border rounded" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Quantity</label>
+                <input type="number" name="quantity" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Donated?</label>
+                <input type="text" name="donor" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Received?</label>
+                <input type="text" name="receiver" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Additional Details</label>
+                <textarea name="details" class="w-full p-2 border rounded"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="closeReceiveModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+    </div>
+
+    <!-- Give Modal -->
+    <div id="giveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
+    <div class="bg-white p-6 rounded-lg w-1/3">
+        <h3 class="text-xl font-bold mb-4">Give Medicine</h3>
+        <form id="giveForm" action="{{ route('medicines.give', $medicine) }}" method="POST">
+            @csrf
+            <input type="hidden" name="medicine_id" id="giveMedicineId">
+            <div class="mb-4">
+                <label class="block text-gray-700">Medicine Name</label>
+                <input type="text" id="giveMedicineName" class="w-full p-2 border rounded" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Quantity</label>
+                <input type="number" name="quantity" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Administered?</label>
+                <input type="text" name="administered_by" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Received?</label>
+                <input type="text" name="receiver" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Additional Details</label>
+                <textarea name="details" class="w-full p-2 border rounded"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="closeGiveModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
+                <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+    </div>
+
+    <script>
+        // Receive Modal Functions
+        function openReceiveModal(medicineId, medicineName) {
+            document.getElementById('receiveMedicineId').value = medicineId;
+            document.getElementById('receiveMedicineName').value = medicineName;
+            document.getElementById('receiveModal').classList.remove('hidden');
+        }
+
+        function closeReceiveModal() {
+            document.getElementById('receiveModal').classList.add('hidden');
+        }
+
+        // Give Modal Functions
+        function openGiveModal(medicineId, medicineName) {
+            document.getElementById('giveMedicineId').value = medicineId;
+            document.getElementById('giveMedicineName').value = medicineName;
+            document.getElementById('giveModal').classList.remove('hidden');
+        }
+
+        function closeGiveModal() {
+            document.getElementById('giveModal').classList.add('hidden');
+        }
+    </script>
 
 </body>
 </html>

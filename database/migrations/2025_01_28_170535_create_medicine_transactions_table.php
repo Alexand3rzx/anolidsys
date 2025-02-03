@@ -19,6 +19,7 @@ return new class extends Migration
         $table->integer('quantity');
         $table->string('donor')->nullable();
         $table->string('receiver')->nullable();
+        $table->string('administered_by')->nullable();
         $table->text('details')->nullable();
         $table->string('type'); // "receive" or "give"
         $table->timestamps();

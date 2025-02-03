@@ -86,73 +86,75 @@
     </div>
 
      <!-- Receive Modal -->
-     <div id="receiveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
-        <div class="bg-white p-6 rounded-lg w-1/3">
-            <h3 class="text-xl font-bold mb-4">Receive Medicine</h3>
-            <form id="receiveForm" action="{{ route('medicines.receive', $medicine) }}" method="POST">
-                @csrf
-                <input type="hidden" name="medicine_id" id="receiveMedicineId">
-                <div class="mb-4">
-                    <label class="block text-gray-700">Medicine Name</label>
-                    <input type="text" id="receiveMedicineName" class="w-full p-2 border rounded" readonly>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Quantity</label>
-                    <input type="number" name="quantity" class="w-full p-2 border rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Who Donated?</label>
-                    <input type="text" name="donor" class="w-full p-2 border rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Who Received?</label>
-                    <input type="text" name="receiver" class="w-full p-2 border rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Additional Details</label>
-                    <textarea name="details" class="w-full p-2 border rounded"></textarea>
-                </div>
-                <div class="flex justify-end">
-                    <button type="button" onclick="closeReceiveModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
-                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Submit</button>
-                </div>
-            </form>
-        </div>
+     <div id="receiveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
+    <div class="bg-white p-6 rounded-lg w-1/3">
+        <h3 class="text-xl font-bold mb-4">Receive Medicine</h3>
+        <form id="receiveForm" action="{{ route('medicines.receive', $medicine) }}" method="POST">
+            @csrf
+            <input type="hidden" name="medicine_id" id="receiveMedicineId">
+            <div class="mb-4">
+                <label class="block text-gray-700">Medicine Name</label>
+                <input type="text" id="receiveMedicineName" class="w-full p-2 border rounded" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Quantity</label>
+                <input type="number" name="quantity" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Donated?</label>
+                <input type="text" name="donor" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Received?</label>
+                <input type="text" name="receiver" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Additional Details</label>
+                <textarea name="details" class="w-full p-2 border rounded"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="closeReceiveModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
     </div>
 
     <!-- Give Modal -->
-    <div id="giveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
-        <div class="bg-white p-6 rounded-lg w-1/3">
-            <h3 class="text-xl font-bold mb-4">Give Medicine</h3>
-            <form id="giveForm" action="{{ route('medicines.give', $medicine) }}" method="POST">
-                @csrf
-                <input type="hidden" name="medicine_id" id="giveMedicineId">
-                <div class="mb-4">
-                    <label class="block text-gray-700">Medicine Name</label>
-                    <input type="text" id="giveMedicineName" class="w-full p-2 border rounded" readonly>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Quantity</label>
-                    <input type="number" name="quantity" class="w-full p-2 border rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Who Administered?</label>
-                    <input type="text" name="administered_by" class="w-full p-2 border rounded" value="{{ auth()->user()->name }}" readonly>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Who Received?</label>
-                    <input type="text" name="receiver" class="w-full p-2 border rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Additional Details</label>
-                    <textarea name="details" class="w-full p-2 border rounded"></textarea>
-                </div>
-                <div class="flex justify-end">
-                    <button type="button" onclick="closeGiveModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
-                    <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded">Submit</button>
-                </div>
-            </form>
-        </div>
+    <div id="giveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
+    <div class="bg-white p-6 rounded-lg w-1/3">
+        <h3 class="text-xl font-bold mb-4">Give Medicine</h3>
+        <form id="giveForm" action="{{ route('medicines.give', $medicine) }}" method="POST">
+            @csrf
+            <input type="hidden" name="medicine_id" id="giveMedicineId">
+            <div class="mb-4">
+                <label class="block text-gray-700">Medicine Name</label>
+                <input type="text" id="giveMedicineName" class="w-full p-2 border rounded" readonly>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Quantity</label>
+                <input type="number" name="quantity" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Administered?</label>
+                <input type="text" name="administered_by" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Who Received?</label>
+                <input type="text" name="receiver" class="w-full p-2 border rounded" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Additional Details</label>
+                <textarea name="details" class="w-full p-2 border rounded"></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="button" onclick="closeGiveModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
+                <button type="submit" class="bg-yellow-500 text-white px-4 py-2 rounded">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
     </div>
 
     <script>

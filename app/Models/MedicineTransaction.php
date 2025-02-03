@@ -18,6 +18,7 @@ class MedicineTransaction extends Model
         'quantity',
         'donor',
         'receiver',
+        'administered_by',
         'details',
         'type',
     ];

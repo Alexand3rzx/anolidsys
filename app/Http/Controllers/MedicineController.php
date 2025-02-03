@@ -93,6 +93,7 @@ class MedicineController extends Controller
     $request->validate([
         'quantity' => 'required|integer|min:1',
         'receiver' => 'required|string',
+        'administered_by' => 'required|string',
         'details' => 'nullable|string',
     ]);
 
@@ -108,6 +109,7 @@ class MedicineController extends Controller
     $medicine->transactions()->create([
         'quantity' => $request->quantity,
         'receiver' => $request->receiver,
+        'administered_by' => $request->administered_by,
         'details' => $request->details,
         'type' => 'give',
     ]);

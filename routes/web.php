@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MedicineController;
+use App\Http\Controllers\BeneficiaryController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -45,4 +46,10 @@ Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])->
     Route::delete('medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
 });
 
+//beneficiaries
+Route::resource('beneficiaries', BeneficiaryController::class);
+Route::get('/beneficiaries', [BeneficiaryController::class, 'index'])->name('beneficiaries.index');
+//Route::post('/beneficiaries/store', [BeneficiaryController::class, 'store'])->name('beneficiaries.store');
+Route::post('/beneficiaries/store-pregnant', [BeneficiaryController::class, 'storePregnant'])->name('beneficiaries.storePregnant');
+Route::post('/beneficiaries/store-infant', [BeneficiaryController::class, 'storeInfant'])->name('beneficiaries.storeInfant');
 require __DIR__.'/auth.php';

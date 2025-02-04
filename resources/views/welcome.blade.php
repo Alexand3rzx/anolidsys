@@ -12,35 +12,39 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #9c27b0, #4caf50); /* Purple to Green Gradient */
-            color: white;
+            background: linear-gradient(to bottom, #cc0000, #ff4d4d, #ffffff); /* Stronger red with white at bottom */
+            color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             height: 100vh;
             overflow: hidden;
         }
 
+        .logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+        }
+
         .header {
             text-align: center;
-            background: url('{{ asset('images/hahaa.jpg') }}') no-repeat center center;
-            background-size: cover;
-            width: 100%;
-            padding: 50px 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             margin: 0;
-            color: white;
+            color: white; /* White title for better visibility */
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             margin-top: 10px;
             color: white;
         }
@@ -51,21 +55,7 @@
             text-align: center;
             max-width: 800px;
             line-height: 1.6;
-        }
-
-        .box {
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            color: white;
-            background: linear-gradient(135deg, #4caf50, #8bc34a); /* Green Gradient */
-        }
-
-        .box img {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 15px;
+            color: white; /* White text for better contrast */
         }
 
         .auth-links {
@@ -75,69 +65,35 @@
 
         .auth-links a {
             color: white;
-            background-color: #4caf50;
+            background-color: #8B4513; /* Brown background for buttons */
             padding: 10px 20px;
             margin: 0 10px;
             text-decoration: none;
             border-radius: 5px;
             font-size: 1.1rem;
+            transition: background-color 0.3s ease;
         }
 
         .auth-links a:hover {
-            background-color: #45a049;
-        }
-
-        /* Different Gradient for each Box */
-        .box-1 {
-            background: linear-gradient(135deg, #f44336, #ff5722); /* Red to Orange */
-        }
-
-        .box-2 {
-            background: linear-gradient(135deg, #2196f3, #03a9f4); /* Blue */
-        }
-
-        .box-3 {
-            background: linear-gradient(135deg, #ff9800, #ffeb3b); /* Yellow to Orange */
+            background-color: #5a2d0c; /* Darker brown on hover */
         }
     </style>
 </head>
 <body>
-    <header class="header">
+    <!-- Logo in the Center -->
+    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="logo">
+
+    <!-- Header with System Name and Location -->
+    <div class="header">
         <h1>Health Management System</h1>
         <p>Brgy. Anolid, Mangaldan, Pangasinan</p>
-    </header>
+    </div>
 
-    <section class="description">
+    <!-- Description -->
+    <div class="description">
         <p>
             Welcome to the Health Management System. This platform is designed to efficiently manage and monitor health-related activities and services in our community.
         </p>
-    </section>
-
-    <!-- Three Health Boxes with Different Gradients -->
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="box box-1">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons/health.svg" alt="Health Icon">
-                    <h3>Health Monitoring</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis magna vitae leo egestas.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="box box-2">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons/heart.svg" alt="Health Icon">
-                    <h3>Medical Assistance</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis magna vitae leo egestas.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="box box-3">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons/medkit.svg" alt="Health Icon">
-                    <h3>Health Tips</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis magna vitae leo egestas.</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Authentication Links -->
@@ -148,9 +104,6 @@
                     <a href="{{ url('/home') }}">Dashboard</a>
                 @else
                     <a href="{{ route('login') }}">Log in</a>
-                    @if (Route::has('register'))
-                        <!-- Add Register Link if necessary -->
-                    @endif
                 @endauth
             </div>
         @endif

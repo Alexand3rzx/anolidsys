@@ -19,6 +19,7 @@
                 <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-blue-800">Dashboard</a>
                 <!-- Update this link to the medicine inventory route -->
                 <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-blue-800">Medicine Inventory</a>
+                <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-blue-800">Beneficiaries</a>
                 <a class="block py-2.5 px-4 hover:bg-blue-800">Pregnant Women Tracking</a>
                 <a class="block py-2.5 px-4 hover:bg-blue-800">Babies Immunization</a>
             </nav>

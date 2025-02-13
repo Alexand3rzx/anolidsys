@@ -44,6 +44,9 @@ Route::middleware(['auth'])->group(function () {
 Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])->name('medicines.give');
     Route::get('medicines/{medicine}/edit', [MedicineController::class, 'edit'])->name('medicines.edit');
     Route::delete('medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
+    Route::put('medicines/{medicine}', [MedicineController::class, 'update'])->name('medicines.update');
+    Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
+
 });
 
 //beneficiaries

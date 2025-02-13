@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Medicine extends Model
 {
     protected $fillable = [
-        'name', 'details', 'stock',
+        'name', 'details', 'stock','expiration'
     ];
 
     public function transactions()

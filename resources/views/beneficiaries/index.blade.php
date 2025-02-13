@@ -10,15 +10,15 @@
 
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside class="bg-blue-900 text-white w-64 flex flex-col">
+        <aside class="bg-gradient-to-b from-red-800 via-red-500 to-red-300 text-white w-64 flex flex-col">
             <div class="p-6">
                 <h1 class="text-2xl font-bold">Health Management System</h1>
                 <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
             </div>
             <nav class="flex-grow">
-                <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-blue-800">Dashboard</a>
-                <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-blue-800">Medicine Inventory</a>
-                <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 bg-blue-800">Beneficiaries</a>
+                <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
+                <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
+                <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 bg-red-600">Beneficiaries</a>
                 <a class="block py-2.5 px-4 hover:bg-blue-800">Pregnant Women Tracking</a>
                 <a class="block py-2.5 px-4 hover:bg-blue-800">Babies Immunization</a>
             </nav>
@@ -50,7 +50,7 @@
                 </select>
 
                 <!-- Submit Button -->
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Filter</button>
+                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Filter</button>
             </form>
 
             <!-- Beneficiaries Table -->
@@ -72,8 +72,8 @@
             </table>
 
             <!-- Add Beneficiary Buttons -->
-            <button onclick="openModal('pregnant')" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Add Pregnant</button>
-            <button onclick="openModal('infant')" class="mt-4 bg-green-500 text-white py-2 px-4 rounded">Add Infant</button>
+            <button onclick="openModal('pregnant')" class="mt-4 bg-red-500 text-white py-2 px-4 rounded">Add Pregnant</button>
+            <button onclick="openModal('infant')" class="mt-4 bg-red-500 text-white py-2 px-4 rounded">Add Infant</button>
 
             <!-- Pregnant Modal -->
             <div id="pregnantModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
@@ -153,4 +153,4 @@
 
 </body>
 </html>
-// alright beneficiaries working na ho!!
+// we stopped adding UI dito sa beneficiaries index...

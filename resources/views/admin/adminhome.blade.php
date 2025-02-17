@@ -18,7 +18,7 @@
 <body class="flex min-h-screen">
 
     <!-- Sidebar -->
-    <aside class="bg-gradient-to-b from-red-800 via-red-500 to-red-300 text-white w-64 flex flex-col">
+    <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
         <div class="p-6">
             <h1 class="text-2xl font-bold">Health Management System</h1>
             <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
@@ -48,12 +48,12 @@
         </header>
 
         <!-- Chart Section -->
-        <div class="bg-pink-100 shadow rounded-lg p-6 mb-6">
-            <h3 class="text-xl font-semibold mb-4">Inventory</h3>
-            <div class="flex justify-center items-center h-80"> <!-- Adjusted height and centered -->
-                <canvas id="medicineStockChart" class="w-full h-full"></canvas>
-            </div>
-        </div>
+<div class="bg-pink-100 shadow rounded-lg p-6 mb-6">
+    <h3 class="text-xl font-semibold mb-4 text-gray-800">Medicine Inventory</h3>
+    <div class="flex justify-center items-center h-80"> <!-- Adjusted height and centered -->
+        <canvas id="medicineStockChart" class="w-full h-full"></canvas>
+    </div>
+</div>
 
         <!-- Beneficiary Statistics Section -->
 <div class="grid grid-cols-2 gap-4">
@@ -71,52 +71,83 @@
 </div>
     </main>
 
-    <!-- Include Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const ctx = document.getElementById('medicineStockChart').getContext('2d');
+    <!-- Include Chart.js datalabels plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
-            const medicineNames = @json($medicines->pluck('name'));
-            const medicineStocks = @json($medicines->pluck('stock'));
+   <!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('medicineStockChart').getContext('2d');
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: medicineNames,
-                    datasets: [{
-                        label: 'Stock Count',
-                        data: medicineStocks,
-                        backgroundColor: 'rgba(220, 38, 38, 0.6)',
-                        borderColor: 'rgba(220, 38, 38, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false, // Allow chart to adjust to container size
-                    scales: {
-                        x: { beginAtZero: true },
-                        y: { 
-                            ticks: {
-                                autoSkip: false, // Prevent labels from being skipped
-                                font: {
-                                    size: 12 // Adjust font size for y-axis labels
-                                }
-                            }
-                        }
+        const medicineNames = @json($medicines->pluck('name'));
+        const medicineStocks = @json($medicines->pluck('stock'));
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: medicineNames,
+                datasets: [{
+                    label: 'Stock Count',
+                    data: medicineStocks,
+                    backgroundColor: 'rgba(220, 38, 38, 0.6)', // Your red color
+                    borderColor: 'rgba(220, 38, 38, 1)', // Border color
+                    borderWidth: 1,
+                    borderRadius: 4, // Rounded corners for bars
+                    hoverBackgroundColor: 'rgba(220, 38, 38, 0.8)', // Darker on hover
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Horizontal bars
+                responsive: true,
+                maintainAspectRatio: false, // Allow chart to adjust to container size
+                scales: {
+                    x: { 
+                        display: false, // Hide x-axis (bottom numbers)
                     },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top', // Move legend to the top
-                        }
-                    }
-                }
-            });
+                    y: { 
+                        grid: {
+                            display: false, // Remove grid lines for y-axis
+                        },
+                        ticks: {
+                            autoSkip: false, // Prevent labels from being skipped
+                            font: {
+                                size: 12, // Font size for y-axis labels
+                            },
+                        },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: false, // Hide legend (optional)
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)', // Dark tooltip background
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 12 },
+                        padding: 10,
+                        cornerRadius: 4,
+                    },
+                    datalabels: { // Plugin to display stock totals beside bars
+                        anchor: 'end', // Position the label at the end of the bar
+                        align: 'right', // Align the label to the right
+                        color: 'rgba(0, 0, 0, 0.8)', // Dark text color
+                        font: {
+                            size: 12, // Font size for the labels
+                            weight: 'bold', // Bold text
+                        },
+                        formatter: (value) => {
+                            return value; // Display the stock count
+                        },
+                    },
+                },
+            },
         });
-    </script>
+    });
+</script>
+
+
 
 </body>
 </html>

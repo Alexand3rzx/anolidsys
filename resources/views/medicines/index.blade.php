@@ -10,7 +10,7 @@
 
     <!-- Sidebar -->
     <div class="flex h-screen">
-    <aside class="bg-gradient-to-b from-red-800 via-red-500 to-red-300 text-white w-64 flex flex-col">
+    <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
             <div class="p-6">
                 <h1 class="text-2xl font-bold">Health Management System</h1>
                 <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
@@ -48,12 +48,12 @@
         <a href="{{ route('medicines.create') }}" class="px-4 py-2 bg-red-500 text-white rounded">Add Medicine</a> 
         
         <!-- Search Bar -->
-        <form method="GET" action="{{ route('medicines.index') }}" class="flex">
-            <input type="text" name="search" value="{{ request('search') }}" 
-                   placeholder="Search medicines..." 
-                   class="px-4 py-2 border rounded-l w-64">
-            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">Search</button>
-        </form>
+        <form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
+    <input type="text" name="search" value="{{ request('search') }}" 
+           placeholder="Search medicines..." 
+           class="px-4 py-2 border rounded-l w-64" id="searchInput">
+    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">Search</button>
+</form>
     </div>
                     
 
@@ -85,7 +85,18 @@
             <td class="px-4 py-2">
                 <button type="button" onclick="openReceiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Receive</button>
                 <button type="button" onclick="openGiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Give</button>
-                <button type="button" onclick="openEditModal('{{ $medicine->id }}', '{{ $medicine->name }}', '{{ $medicine->details }}', '{{ $medicine->stock }}')" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Edit</button>
+                <button 
+    type="button" 
+    onclick="openEditModal(
+        '{{ $medicine->id }}', 
+        '{{ $medicine->name }}', 
+        '{{ $medicine->details }}', 
+        '{{ $medicine->stock }}', 
+        '{{ \Carbon\Carbon::parse($medicine->expiration)->format('Y-m-d') }}'  // Proper date format for the input field
+    )" 
+    class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+    Edit
+</button>
                 <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline">
                     @csrf
                     @method('DELETE')
@@ -214,25 +225,58 @@
 </div>
 
 <script>
+
+document.getElementById('searchInput').addEventListener('input', function() {
+        // Get the input value
+        let searchQuery = this.value.toLowerCase();
+        
+        // Get all table rows
+        let rows = document.querySelectorAll('table tbody tr');
+
+        // Loop through each row and hide/show based on the search input
+        rows.forEach(row => {
+            let medicineName = row.querySelector('td:first-child').textContent.toLowerCase();
+            if (medicineName.includes(searchQuery)) {
+                row.style.display = ''; // Show the row if the name matches
+            } else {
+                row.style.display = 'none'; // Hide the row if it doesn't match
+            }
+        });
+    });
+
+
     function openReceiveModal(medicineId, medicineName) {
-        document.getElementById('receiveMedicineId').value = medicineId;
-        document.getElementById('receiveMedicineName').value = medicineName;
-        document.getElementById('receiveModal').classList.remove('hidden');
-    }
+    document.getElementById('receiveMedicineId').value = medicineId;
+    document.getElementById('receiveMedicineName').value = medicineName;
+
+    // Dynamically set the form action
+    const form = document.getElementById('receiveForm');
+    form.action = `/medicines/${medicineId}/receive`;  // Adjust the route pattern as per your web.php
+
+    document.getElementById('receiveModal').classList.remove('hidden');
+}
 
     function closeReceiveModal() {
         document.getElementById('receiveModal').classList.add('hidden');
     }
 
     function openGiveModal(medicineId, medicineName) {
-        document.getElementById('giveMedicineId').value = medicineId;
-        document.getElementById('giveMedicineName').value = medicineName;
-        document.getElementById('giveModal').classList.remove('hidden');
-    }
+    document.getElementById('giveMedicineId').value = medicineId;
+    document.getElementById('giveMedicineName').value = medicineName;
+
+    // Dynamically set the form action
+    const form = document.getElementById('giveForm');
+    form.action = `/medicines/${medicineId}/give`;  // Adjust the route pattern as per your web.php
+
+    document.getElementById('giveModal').classList.remove('hidden');
+}
+
 
     function closeGiveModal() {
         document.getElementById('giveModal').classList.add('hidden');
     }
+
+    
 
     function openEditModal(id, name, details, stock, expiration) {
         document.getElementById('editMedicineId').value = id;
@@ -256,4 +300,4 @@
 </html>
 
 //things to do
-yung label thingy sa bargraph sa dashboard
+tabs tabs 

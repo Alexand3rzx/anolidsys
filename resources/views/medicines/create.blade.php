@@ -9,7 +9,7 @@
 <body class="flex min-h-screen">
 
     <!-- Sidebar -->
-    <aside class="bg-gradient-to-b from-red-800 via-red-500 to-red-300 text-white w-64 flex flex-col">
+    <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
         <div class="p-6">
             <h1 class="text-2xl font-bold">Health Management System</h1>
             <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>

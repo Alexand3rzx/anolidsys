@@ -75,7 +75,7 @@ class MedicineController extends Controller
             'donor' => 'required|string',
             'receiver' => 'required|string',
             'details' => 'nullable|string',
-            'expiration' => 'required|date', // Ensure expiration is included
+            
         ]);
 
         // Increase stock
@@ -90,7 +90,6 @@ class MedicineController extends Controller
             'donor' => $request->donor,
             'receiver' => $request->receiver,
             'details' => $request->details,
-            'expiration' => $request->expiration,
             'type' => 'receive',
         ]);
 

@@ -16,7 +16,9 @@ class MedicineController extends Controller
                              ->orWhere('details', 'like', "%{$search}%");
             })
             ->orderBy('name', 'asc') // Order by medicine name alphabetically
-            ->get();
+            ->paginate(6) // Display 8 medicines per page
+            ->appends(['search' => $search]); // Retain search query during pagination
+            //->get();
 
         return view('medicines.index', compact('medicines'));
     }

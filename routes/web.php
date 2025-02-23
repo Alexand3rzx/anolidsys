@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\BeneficiaryController;
+use App\Http\Controllers\PregnantController;
+use App\Http\Controllers\InfantController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,9 +52,30 @@ Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])->
 });
 
 //beneficiaries
-Route::resource('beneficiaries', BeneficiaryController::class);
+//Route::resource('beneficiaries', BeneficiaryController::class);
 Route::get('/beneficiaries', [BeneficiaryController::class, 'index'])->name('beneficiaries.index');
 //Route::post('/beneficiaries/store', [BeneficiaryController::class, 'store'])->name('beneficiaries.store');
-Route::post('/beneficiaries/store-pregnant', [BeneficiaryController::class, 'storePregnant'])->name('beneficiaries.storePregnant');
-Route::post('/beneficiaries/store-infant', [BeneficiaryController::class, 'storeInfant'])->name('beneficiaries.storeInfant');
+//Route::post('/beneficiaries/store-pregnant', [BeneficiaryController::class, 'storePregnant'])->name('beneficiaries.storePregnant');
+//Route::post('/beneficiaries/store-infant', [BeneficiaryController::class, 'storeInfant'])->name('beneficiaries.storeInfant');
+
+//Route::delete('/beneficiaries/{id}', [BeneficiaryController::class, 'destroy'])->name('beneficiaries.destroy');
+//Route::put('/beneficiaries/{id}', [BeneficiaryController::class, 'update'])->name('beneficiaries.update');
 require __DIR__.'/auth.php';
+
+//pregnant
+Route::post('/pregnant', [PregnantController::class, 'store'])->name('pregnant.store');
+Route::post('/pregnant/store', [PregnantController::class, 'store'])->name('pregnant.store');
+Route::get('/pregnant/{id}/edit', [PregnantController::class, 'edit'])->name('pregnant.edit');
+Route::put('/pregnant/{id}', [PregnantController::class, 'update'])->name('pregnant.update');
+Route::delete('/pregnant/{id}', [PregnantController::class, 'destroy'])->name('pregnant.destroy');
+// Resource routes for infants
+Route::resource('infants', InfantController::class)->except(['show']);
+
+// Store a new infant
+Route::post('/infants', [InfantController::class, 'store'])->name('infants.store');
+
+// Fetch infant data for editing
+Route::get('/infants/{id}/edit', [InfantController::class, 'edit']);
+
+// Update an existing infant
+Route::put('/infants/{infant}', [InfantController::class, 'update'])->name('infants.update');

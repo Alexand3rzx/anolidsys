@@ -108,6 +108,11 @@
     </tbody>
 </table>
 
+<!-- Pagination Controls -->
+<div class="mt-4">
+{{ $medicines->appends(['search' => request('search')])->links() }}
+</div>
+
                 </div>
             </div>
         </main>
@@ -129,11 +134,11 @@
                 <input type="number" name="quantity" class="w-full p-2 border rounded" required>
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700">Who Donated?</label>
+                <label class="block text-gray-700">Donated By:</label>
                 <input type="text" name="donor" class="w-full p-2 border rounded" required>
             </div>
             <div class="mb-4">
-                <label class="block text-gray-700">Who Received?</label>
+                <label class="block text-gray-700">Received By:</label>
                 <input type="text" name="receiver" class="w-full p-2 border rounded bg-gray-200" value="{{ Auth::user()->name }}" readonly>
             </div>
             <div class="mb-4">
@@ -167,12 +172,12 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700">Who Administered?</label>
+                <label class="block text-gray-700">Administered By:</label>
                 <input type="text" name="administered_by" class="w-full p-2 border rounded bg-gray-200" value="{{ Auth::user()->name }}" readonly>
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700">Who Received?</label>
+                <label class="block text-gray-700">Received By:</label>
                 <input type="text" name="receiver" class="w-full p-2 border rounded" required>
             </div>
 

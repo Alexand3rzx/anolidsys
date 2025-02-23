@@ -10,18 +10,26 @@ class Beneficiary extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'category',  // 'Pregnant' or 'Infant'
-        'birthday',
-        'age',
-        'months_pregnant', // Nullable (only for Pregnant)
-        'due_date',        // Nullable (only for Pregnant)
-        'weight',          // Nullable (only for Infant)
-        'height',          // Nullable (only for Infant)
+        'Fname', 'Lname', 'category', 'birthday', 'age', 
+        'months_pregnant', 'due_date', 'weight', 'height',
+        'address', 'occupation', 'educational_attainment', 'contact_number',
+        'religion', 'mothers_name', 'partner_name', 
+        'partner_age', 'partner_bday', 'partner_occupation', 
+        'partner_eduattain', 'partner_religion'
     ];
+    
 
     protected $casts = [
         'birthday' => 'date',
         'due_date' => 'date',
+        'partner_bday' => 'date'
     ];
+
+    // Helper method to get full name
+    public function getFullNameAttribute()
+    {
+        return "{$this->Fname} {$this->Lname}";
+    }
 }
+
+

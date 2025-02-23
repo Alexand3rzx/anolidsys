@@ -47,11 +47,15 @@
             <p class="text-gray-600">Welcome to the Health Management System</p>
         </header>
 
-        <!-- Chart Section -->
+       <!-- Chart Section -->
 <div class="bg-pink-100 shadow rounded-lg p-6 mb-6">
     <h3 class="text-xl font-semibold mb-4 text-gray-800">Medicine Inventory</h3>
-    <div class="flex justify-center items-center h-80"> <!-- Adjusted height and centered -->
+    <div class="flex justify-center items-center h-80">
         <canvas id="medicineStockChart" class="w-full h-full"></canvas>
+    </div>
+    <div class="flex justify-center mt-4">
+        <button id="prevPage" class="bg-red-500 text-white px-4 py-2 rounded mr-2">Previous</button>
+        <button id="nextPage" class="bg-red-500 text-white px-4 py-2 rounded">Next</button>
     </div>
 </div>
 
@@ -71,25 +75,43 @@
 </div>
     </main>
 
-    <!-- Include Chart.js datalabels plugin -->
+   <!-- Include Chart.js datalabels plugin -->
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
-   <!-- Include Chart.js -->
+<!-- Include Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const ctx = document.getElementById('medicineStockChart').getContext('2d');
 
+        // Medicines data from the server
         const medicineNames = @json($medicines->pluck('name'));
         const medicineStocks = @json($medicines->pluck('stock'));
 
-        new Chart(ctx, {
+        const medicinesPerPage = 8;
+        let currentPage = 1;
+
+        // Function to update chart data based on the current page
+        function updateChartData(page) {
+            const startIndex = (page - 1) * medicinesPerPage;
+            const endIndex = startIndex + medicinesPerPage;
+            const pageMedicines = medicineNames.slice(startIndex, endIndex);
+            const pageStocks = medicineStocks.slice(startIndex, endIndex);
+
+            chart.data.labels = pageMedicines;
+            chart.data.datasets[0].data = pageStocks;
+            chart.update();
+        }
+
+        // Initialize the chart with the first page
+        const chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: medicineNames,
+                labels: [], // Will be populated later
                 datasets: [{
                     label: 'Stock Count',
-                    data: medicineStocks,
+                    data: [], // Will be populated later
                     backgroundColor: 'rgba(220, 38, 38, 0.6)', // Your red color
                     borderColor: 'rgba(220, 38, 38, 1)', // Border color
                     borderWidth: 1,
@@ -144,8 +166,27 @@
                 },
             },
         });
+
+        // Initial load with first page
+        updateChartData(currentPage);
+
+        // Pagination buttons
+        document.getElementById('prevPage').addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                updateChartData(currentPage);
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function() {
+            if (currentPage * medicinesPerPage < medicineNames.length) {
+                currentPage++;
+                updateChartData(currentPage);
+            }
+        });
     });
 </script>
+
 
 
 

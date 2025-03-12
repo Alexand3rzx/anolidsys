@@ -31,6 +31,9 @@ class PregnantController extends Controller
         return back()->with('success', 'Pregnant woman added successfully');
     }
 
+   
+
+
 // Show a single record for editing
 public function edit($id)
 {
@@ -47,7 +50,7 @@ public function update(Request $request, $id)
         'prgbday' => 'required|date',
         'prgaddress' => 'required|string|max:255',
         'prgoccupation' => 'nullable|string|max:255',
-        'prgreligion' => 'nullable|string|max:255',
+        'prgreligion' => 'required|string|max:255',
         'prgmother_name' => 'nullable|string|max:255',
         'partner_name' => 'nullable|string|max:255',
         'partner_age' => 'nullable|integer',

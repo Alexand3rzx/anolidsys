@@ -10,16 +10,17 @@ class MedicineController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-
+    
         $medicines = Medicine::when($search, function ($query, $search) {
-                return $query->where('name', 'like', "%{$search}%")
-                             ->orWhere('details', 'like', "%{$search}%");
+                return $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('details', 'like', "%{$search}%");
+                });
             })
             ->orderBy('name', 'asc') // Order by medicine name alphabetically
-            ->paginate(6) // Display 8 medicines per page
+            ->paginate(6) // Display 6 medicines per page
             ->appends(['search' => $search]); // Retain search query during pagination
-            //->get();
-
+    
         return view('medicines.index', compact('medicines'));
     }
 

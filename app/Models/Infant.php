@@ -19,5 +19,12 @@ class Infant extends Model
         'child_gender',
         'child_height',
         'child_weight',
+        
     ];
+
+    public function immunization()
+    {
+        return $this->hasOne(Immunization::class);
+    }
+    
 }

@@ -47,13 +47,13 @@
         <!-- Add Medicine Button -->
         <a href="{{ route('medicines.create') }}" class="px-4 py-2 bg-red-500 text-white rounded">Add Medicine</a> 
         
-        <!-- Search Bar -->
-        <form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
-    <input type="text" name="search" value="{{ request('search') }}" 
-           placeholder="Search medicines..." 
-           class="px-4 py-2 border rounded-l w-64" id="searchInput">
-    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">Search</button>
-</form>
+            <!-- Search Bar -->
+            <form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
+        <input type="text" name="search" value="{{ request('search') }}" 
+            placeholder="Search medicines..." 
+            class="px-4 py-2 border rounded-l w-64" id="searchInput">
+        <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">Search</button>
+    </form>
     </div>
                     
 
@@ -232,22 +232,19 @@
 <script>
 
 document.getElementById('searchInput').addEventListener('input', function() {
-        // Get the input value
-        let searchQuery = this.value.toLowerCase();
-        
-        // Get all table rows
-        let rows = document.querySelectorAll('table tbody tr');
+    let searchQuery = this.value.toLowerCase();
+    let rows = document.querySelectorAll('table tbody tr');
 
-        // Loop through each row and hide/show based on the search input
-        rows.forEach(row => {
-            let medicineName = row.querySelector('td:first-child').textContent.toLowerCase();
-            if (medicineName.includes(searchQuery)) {
-                row.style.display = ''; // Show the row if the name matches
-            } else {
-                row.style.display = 'none'; // Hide the row if it doesn't match
-            }
-        });
+    rows.forEach(row => {
+        let medicineName = row.querySelector('td:first-child').textContent.toLowerCase();
+        let medicineDetails = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        if (medicineName.includes(searchQuery) || medicineDetails.includes(searchQuery)) {
+            row.style.display = ''; // Show the row if the name or details match
+        } else {
+            row.style.display = 'none'; // Hide the row if it doesn't match
+        }
     });
+});
 
 
     function openReceiveModal(medicineId, medicineName) {
@@ -304,5 +301,3 @@ document.getElementById('searchInput').addEventListener('input', function() {
 </body>
 </html>
 
-//things to do
-tabs tabs 

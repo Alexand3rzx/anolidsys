@@ -79,3 +79,9 @@ Route::get('/infants/{id}/edit', [InfantController::class, 'edit']);
 
 // Update an existing infant
 Route::put('/infants/{infant}', [InfantController::class, 'update'])->name('infants.update');
+
+Route::put('/infants/{id}/immunization', [ImmunizationController::class, 'update'])->name('immunization.update');
+
+Route::get('/infants/{id}/edit', [InfantController::class, 'edit'])->name('infants.edit');
+
+

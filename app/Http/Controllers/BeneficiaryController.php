@@ -57,6 +57,9 @@ public function storePregnant(Request $request)
     return redirect()->route('beneficiaries.index');
 }
 
+
+
+
 public function update(Request $request, $id)
 {
     $request->validate([
@@ -149,6 +152,8 @@ public function index()
 
     // Pass both variables to the view
     return view('beneficiaries.index', compact('pregnantWomen', 'infants'));
+
+    
 }
 
 

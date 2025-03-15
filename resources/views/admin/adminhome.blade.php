@@ -27,8 +27,7 @@
             <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
             <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
             <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
-            <a class="block py-2.5 px-4 hover:bg-red-600">Pregnant Women Tracking</a>
-            <a class="block py-2.5 px-4 hover:bg-red-600">Babies Immunization</a>
+           
         </nav>
         <footer class="p-4">
             <form method="POST" action="{{ route('logout') }}">

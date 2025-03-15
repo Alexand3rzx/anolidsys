@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Immunization;
 
 class ImmunizationController extends Controller
 {
@@ -26,6 +27,9 @@ class ImmunizationController extends Controller
         'mmr_date_2' => 'nullable|date',
     ]);
 
+     // Ensure the infant_id is included in the validated data
+     $validated['infant_id'] = $id;
+
     $immunization = Immunization::updateOrCreate(
         ['infant_id' => $id],
         $validated
@@ -34,3 +38,4 @@ class ImmunizationController extends Controller
     return redirect()->back()->with('success', 'Immunization updated successfully!');
 }
 }
+

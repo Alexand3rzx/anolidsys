@@ -19,8 +19,7 @@
                 <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
                 <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
                 <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 bg-red-600">Beneficiaries</a>
-                <a class="block py-2.5 px-4 hover:bg-blue-800">Pregnant Women Tracking</a>
-                <a class="block py-2.5 px-4 hover:bg-blue-800">Babies Immunization</a>
+                
             </nav>
             <footer class="p-4">
                 <form method="POST" action="{{ route('logout') }}">
@@ -244,178 +243,173 @@
     </div>
 
    <!-- Edit Infant Modal with Immunization Section -->
-<div id="editInfantModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
-    <div class="bg-white p-6 rounded shadow-lg w-3/4 max-h-screen overflow-y-auto">
-        <h3 class="text-2xl font-bold mb-6">Edit Infant</h3>
-        <form id="editInfantForm" method="POST" action="{{ route('infants.update', $infant->id) }}">
+   <div id="editInfantModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+        <div class="bg-white p-6 rounded shadow-lg w-3/4 max-h-screen overflow-y-auto">
+            <h3 class="text-2xl font-bold mb-6">Edit Infant</h3>
+            <form id="editInfantForm" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="id" id="editInfantId">
 
-        
-            @csrf
-            @method('PUT')
-            <input type="hidden" name="id" id="editInfantId">
-            <input type="hidden" name="infant_id" value="{{ $infant->id }}">
+                <!-- Infant Details -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <!-- Left Side -->
+                    <div>
+                        <label class="block mb-2">Child's Name</label>
+                        <input type="text" name="child_name" id="editChildName" class="border p-2 w-full rounded mb-4" required>
 
+                        <label class="block mb-2">Date of Birth</label>
+                        <input type="date" name="child_bday" id="editChildBday" class="border p-2 w-full rounded mb-4" required>
 
-            <!-- Infant Details -->
-            <div class="grid grid-cols-2 gap-6 mb-6">
-                <!-- Left Side -->
-                <div>
-                    <label class="block mb-2">Child's Name</label>
-                    <input type="text" name="child_name" id="editChildName" class="border p-2 w-full rounded mb-4" required>
+                        <label class="block mb-2">Place of Birth</label>
+                        <input type="text" name="child_place" id="editChildPlace" class="border p-2 w-full rounded mb-4" required>
 
-                    <label class="block mb-2">Date of Birth</label>
-                    <input type="date" name="child_bday" id="editChildBday" class="border p-2 w-full rounded mb-4" required>
+                        <label class="block mb-2">Address</label>
+                        <input type="text" name="child_address" id="editChildAddress" class="border p-2 w-full rounded mb-4" required>
+                    </div>
 
-                    <label class="block mb-2">Place of Birth</label>
-                    <input type="text" name="child_place" id="editChildPlace" class="border p-2 w-full rounded mb-4" required>
+                    <!-- Right Side -->
+                    <div>
+                        <label class="block mb-2">Mother's Name</label>
+                        <input type="text" name="child_mother" id="editChildMother" class="border p-2 w-full rounded mb-4" required>
 
-                    <label class="block mb-2">Address</label>
-                    <input type="text" name="child_address" id="editChildAddress" class="border p-2 w-full rounded mb-4" required>
+                        <label class="block mb-2">Father's Name</label>
+                        <input type="text" name="child_father" id="editChildFather" class="border p-2 w-full rounded mb-4" required>
+
+                        <label class="block mb-2">Gender</label>
+                        <select name="child_gender" id="editChildGender" class="border p-2 w-full rounded mb-4" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+
+                        <label class="block mb-2">Height (cm)</label>
+                        <input type="number" step="0.1" name="child_height" id="editChildHeight" class="border p-2 w-full rounded mb-4" required>
+
+                        <label class="block mb-2">Weight (kg)</label>
+                        <input type="number" step="0.1" name="child_weight" id="editChildWeight" class="border p-2 w-full rounded mb-4" required>
+                    </div>
                 </div>
 
-                <!-- Right Side -->
-                <div>
-                    <label class="block mb-2">Mother's Name</label>
-                    <input type="text" name="child_mother" id="editChildMother" class="border p-2 w-full rounded mb-4" required>
+                <!-- Immunization Section -->
+                <div class="mt-8">
+                    <h3 class="text-2xl font-bold mb-6">Immunization</h3>
+                    <table class="w-full border-collapse bg-white shadow-lg mb-6">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="p-3 border">Vaccine</th>
+                                <th class="p-3 border">Doses</th>
+                                <th class="p-3 border">Date Taken</th>
+                                <th class="p-3 border">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- BCG Vaccine -->
+                            <tr>
+                                <td class="p-3 border">BCG Vaccine</td>
+                                <td class="p-3 border">1 dose</td>
+                                <td class="p-3 border">
+                                    <input type="date" name="bcg_date" id="bcg_date" class="border p-2 w-70 rounded">
+                                </td>
+                                <td class="p-3 border">
+                                    <span id="remarks-bcg">Not Started</span>
+                                </td>
+                            </tr>
 
-                    <label class="block mb-2">Father's Name</label>
-                    <input type="text" name="child_father" id="editChildFather" class="border p-2 w-full rounded mb-4" required>
+                            <!-- Hepatitis B Vaccine -->
+                            <tr>
+                                <td class="p-3 border">Hepatitis B Vaccine</td>
+                                <td class="p-3 border">1 dose</td>
+                                <td class="p-3 border">
+                                    <input type="date" name="hepatitis_b_date" id="hepatitis_b_date" class="border p-2 w-70 rounded">
+                                </td>
+                                <td class="p-3 border">
+                                    <span id="remarks-hepatitis-b">Not Started</span>
+                                </td>
+                            </tr>
 
-                    <label class="block mb-2">Gender</label>
-                    <select name="child_gender" id="editChildGender" class="border p-2 w-full rounded mb-4" required>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                    </select>
+                            <!-- Pentavalent Vaccine -->
+                            <tr>
+                                <td class="p-3 border">Pentavalent Vaccine</td>
+                                <td class="p-3 border">3 doses</td>
+                                <td class="p-3 border">
+                                    <input type="date" name="pentavalent_date_1" id="pentavalent_date_1" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="pentavalent_date_2" id="pentavalent_date_2" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="pentavalent_date_3" id="pentavalent_date_3" class="border p-2 w-70 rounded">
+                                </td>
+                                <td class="p-3 border">
+                                    <span id="remarks-pentavalent">Not Started</span>
+                                </td>
+                            </tr>
 
-                    <label class="block mb-2">Height (cm)</label>
-                    <input type="number" step="0.1" name="child_height" id="editChildHeight" class="border p-2 w-full rounded mb-4" required>
+                            <!-- Oral Polio Vaccine (OPV) -->
+                            <tr>
+                                <td class="p-3 border">Oral Polio Vaccine (OPV)</td>
+                                <td class="p-3 border">3 doses</td>
+                                <td class="p-3 border">
+                                    <input type="date" name="opv_date_1" id="opv_date_1" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="opv_date_2" id="opv_date_2" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="opv_date_3" id="opv_date_3" class="border p-2 w-70 rounded">
+                                </td>
+                                <td class="p-3 border">
+                                    <span id="remarks-opv">Not Started</span>
+                                </td>
+                            </tr>
 
-                    <label class="block mb-2">Weight (kg)</label>
-                    <input type="number" step="0.1" name="child_weight" id="editChildWeight" class="border p-2 w-full rounded mb-4" required>
+                            <!-- Inactivated Polio Vaccine (IPV) -->
+                            <tr>
+                                <td class="p-3 border">Inactivated Polio Vaccine (IPV)</td>
+                                <td class="p-3 border">2 doses</td>
+                                <td class="p-3 border">
+                                    <input type="date" name="ipv_date_1" id="ipv_date_1" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="ipv_date_2" id="ipv_date_2" class="border p-2 w-70 rounded">
+                                </td>
+                                <td class="p-3 border">
+                                    <span id="remarks-ipv">Not Started</span>
+                                </td>
+                            </tr>
+
+                            <!-- Pneumococcal Conjugate Vaccine (PCV) -->
+                            <tr>
+                                <td class="p-3 border">Pneumococcal Conjugate Vaccine (PCV)</td>
+                                <td class="p-3 border">3 doses</td>
+                                <td class="p-3 border">
+                                    <input type="date" name="pcv_date_1" id="pcv_date_1" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="pcv_date_2" id="pcv_date_2" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="pcv_date_3" id="pcv_date_3" class="border p-2 w-70 rounded">
+                                </td>
+                                <td class="p-3 border">
+                                    <span id="remarks-pcv">Not Started</span>
+                                </td>
+                            </tr>
+
+                            <!-- Measles, Mumps, Rubella Vaccine (MMR) -->
+                            <tr>
+                                <td class="p-3 border">Measles, Mumps, Rubella Vaccine (MMR)</td>
+                                <td class="p-3 border">2 doses</td>
+                                <td class="p-3 border">
+                                    <input type="date" name="mmr_date_1" id="mmr_date_1" class="border p-2 w-70 rounded mb-2">
+                                    <input type="date" name="mmr_date_2" id="mmr_date_2" class="border p-2 w-70 rounded">
+                                </td>
+                                <td class="p-3 border">
+                                    <span id="remarks-mmr">Not Started</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
 
-            <!-- Immunization Section -->
-<div class="mt-8">
-    <h3 class="text-2xl font-bold mb-6">Immunization</h3>
-    <table class="w-full border-collapse bg-white shadow-lg mb-6">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="p-3 border">Vaccine</th>
-                <th class="p-3 border">Doses</th>
-                <th class="p-3 border">Date Taken</th>
-                <th class="p-3 border">Remarks</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- BCG Vaccine -->
-            <tr>
-                <td class="p-3 border">BCG Vaccine</td>
-                <td class="p-3 border">1 dose</td>
-                <td class="p-3 border">
-                    <input type="date" name="bcg_date" id="bcg_date_{{ $infant->id }}" class="border p-2 w-70 rounded" value="{{ $infant->immunization->bcg_date ?? '' }}">
-                </td>
-                <td class="p-3 border">
-                    <span id="remarks-bcg_{{ $infant->id }}">{{ $infant->immunization->bcg_date ? 'Complete' : 'Incomplete' }}</span>
-                </td>
-            </tr>
-
-            <!-- Hepatitis B Vaccine -->
-            <tr>
-                <td class="p-3 border">Hepatitis B Vaccine</td>
-                <td class="p-3 border">1 dose</td>
-                <td class="p-3 border">
-                    <input type="date" name="hepatitis_b_date" id="hepatitis_b_date_{{ $infant->id }}" class="border p-2 w-70 rounded" value="{{ $infant->immunization->hepatitis_b_date ?? '' }}">
-                </td>
-                <td class="p-3 border">
-                    <span id="remarks-hepatitis-b_{{ $infant->id }}">{{ $infant->immunization->hepatitis_b_date ? 'Complete' : 'Incomplete' }}</span>
-                </td>
-            </tr>
-
-            <!-- Pentavalent Vaccine -->
-            <tr>
-                <td class="p-3 border">Pentavalent Vaccine</td>
-                <td class="p-3 border">3 doses</td>
-                <td class="p-3 border">
-                    <input type="date" name="pentavalent_date_1" id="pentavalent_date_1_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->pentavalent_date_1 ?? '' }}">
-                    <input type="date" name="pentavalent_date_2" id="pentavalent_date_2_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->pentavalent_date_2 ?? '' }}">
-                    <input type="date" name="pentavalent_date_3" id="pentavalent_date_3_{{ $infant->id }}" class="border p-2 w-70 rounded" value="{{ $infant->immunization->pentavalent_date_3 ?? '' }}">
-                </td>
-                <td class="p-3 border">
-                    <span id="remarks-pentavalent_{{ $infant->id }}">{{ $infant->immunization->pentavalent_date_1 && $infant->immunization->pentavalent_date_2 && $infant->immunization->pentavalent_date_3 ? 'Complete' : ($infant->immunization->pentavalent_date_1 || $infant->immunization->pentavalent_date_2 || $infant->immunization->pentavalent_date_3 ? 'Incomplete' : 'Not Started') }}</span>
-                </td>
-            </tr>
-
-            <!-- Oral Polio Vaccine (OPV) -->
-            <tr>
-                <td class="p-3 border">Oral Polio Vaccine (OPV)</td>
-                <td class="p-3 border">3 doses</td>
-                <td class="p-3 border">
-                    <input type="date" name="opv_date_1" id="opv_date_1_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->opv_date_1 ?? '' }}">
-                    <input type="date" name="opv_date_2" id="opv_date_2_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->opv_date_2 ?? '' }}">
-                    <input type="date" name="opv_date_3" id="opv_date_3_{{ $infant->id }}" class="border p-2 w-70 rounded" value="{{ $infant->immunization->opv_date_3 ?? '' }}">
-                </td>
-                <td class="p-3 border">
-                    <span id="remarks-opv_{{ $infant->id }}">{{ $infant->immunization->opv_date_1 && $infant->immunization->opv_date_2 && $infant->immunization->opv_date_3 ? 'Complete' : ($infant->immunization->opv_date_1 || $infant->immunization->opv_date_2 || $infant->immunization->opv_date_3 ? 'Incomplete' : 'Not Started') }}</span>
-                </td>
-            </tr>
-
-            <!-- Inactivated Polio Vaccine (IPV) -->
-            <tr>
-                <td class="p-3 border">Inactivated Polio Vaccine (IPV)</td>
-                <td class="p-3 border">2 doses</td>
-                <td class="p-3 border">
-                    <input type="date" name="ipv_date_1" id="ipv_date_1_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->ipv_date_1 ?? '' }}">
-                    <input type="date" name="ipv_date_2" id="ipv_date_2_{{ $infant->id }}" class="border p-2 w-70 rounded" value="{{ $infant->immunization->ipv_date_2 ?? '' }}">
-                </td>
-                <td class="p-3 border">
-                    <span id="remarks-ipv_{{ $infant->id }}">{{ $infant->immunization->ipv_date_1 && $infant->immunization->ipv_date_2 ? 'Complete' : 'Incomplete' }}</span>
-                </td>
-            </tr>
-
-            <!-- Pneumococcal Conjugate Vaccine (PCV) -->
-            <tr>
-                <td class="p-3 border">Pneumococcal Conjugate Vaccine (PCV)</td>
-                <td class="p-3 border">3 doses</td>
-                <td class="p-3 border">
-                    <input type="date" name="pcv_date_1" id="pcv_date_1_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->pcv_date_1 ?? '' }}">
-                    <input type="date" name="pcv_date_2" id="pcv_date_2_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->pcv_date_2 ?? '' }}">
-                    <input type="date" name="pcv_date_3" id="pcv_date_3_{{ $infant->id }}" class="border p-2 w-70 rounded" value="{{ $infant->immunization->pcv_date_3 ?? '' }}">
-                </td>
-                <td class="p-3 border">
-                    <span id="remarks-pcv_{{ $infant->id }}">{{ $infant->immunization->pcv_date_1 && $infant->immunization->pcv_date_2 && $infant->immunization->pcv_date_3 ? 'Complete' : ($infant->immunization->pcv_date_1 || $infant->immunization->pcv_date_2 || $infant->immunization->pcv_date_3 ? 'Incomplete' : 'Not Started') }}</span>
-                </td>
-            </tr>
-
-            <!-- Measles, Mumps, Rubella Vaccine (MMR) -->
-            <tr>
-                <td class="p-3 border">Measles, Mumps, Rubella Vaccine (MMR)</td>
-                <td class="p-3 border">2 doses</td>
-                <td class="p-3 border">
-                    <input type="date" name="mmr_date_1" id="mmr_date_1_{{ $infant->id }}" class="border p-2 w-70 rounded mb-2" value="{{ $infant->immunization->mmr_date_1 ?? '' }}">
-                    <input type="date" name="mmr_date_2" id="mmr_date_2_{{ $infant->id }}" class="border p-2 w-70 rounded" value="{{ $infant->immunization->mmr_date_2 ?? '' }}">
-                </td>
-                <td class="p-3 border">
-                    <span id="remarks-mmr_{{ $infant->id }}">{{ $infant->immunization->mmr_date_1 && $infant->immunization->mmr_date_2 ? 'Complete' : 'Incomplete' }}</span>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-end mt-6">
-                <button type="button" onclick="closeModal('editInfantModal')" class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">
-                    Cancel
-                </button>
-                <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
-                    Save Changes
-                </button>
-            </div>
-        </form>
+                <!-- Action Buttons -->
+                <div class="flex justify-end mt-6">
+                    <button type="button" onclick="closeModal('editInfantModal')" class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-</div>
     <!-- Edit Pregnant Woman Modal -->
 <div id="editPregnantModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
     <div class="bg-white p-6 rounded shadow-lg w-1/2">
@@ -565,56 +559,154 @@ function closeModal(modalId) {
 
     
 
-        // Open Edit Infant Modal
-        async function openEditInfantModal(id) {
-            try {
-                const response = await fetch(`/infants/${id}/edit`);
-                if (!response.ok) throw new Error('Failed to fetch record');
-                const infant = await response.json();
+       // Open Edit Infant Modal
+       async function openEditInfantModal(id) {
+    try {
+        // Fetch the infant data
+        const response = await fetch(`/infants/${id}/edit`);
+        if (!response.ok) throw new Error('Failed to fetch record');
+        const infant = await response.json();
 
-                // Populate the edit modal with the fetched data
-                document.getElementById('editInfantId').value = infant.id;
-                document.getElementById('editChildName').value = infant.child_name;
-                document.getElementById('editChildBday').value = infant.child_bday;
-                document.getElementById('editChildPlace').value = infant.child_place;
-                document.getElementById('editChildAddress').value = infant.child_address;
-                document.getElementById('editChildMother').value = infant.child_mother;
-                document.getElementById('editChildFather').value = infant.child_father;
-                document.getElementById('editChildGender').value = infant.child_gender;
-                document.getElementById('editChildHeight').value = infant.child_height;
-                document.getElementById('editChildWeight').value = infant.child_weight;
+        // Log the fetched data for debugging
+        console.log('Fetched Infant Data:', infant);
 
-                // Set the form action dynamically
-                document.getElementById('editInfantForm').action = `/infants/${infant.id}`;
+        // Populate the infant details
+        document.getElementById('editInfantId').value = infant.id;
+        document.getElementById('editChildName').value = infant.child_name;
+        document.getElementById('editChildBday').value = infant.child_bday;
+        document.getElementById('editChildPlace').value = infant.child_place;
+        document.getElementById('editChildAddress').value = infant.child_address;
+        document.getElementById('editChildMother').value = infant.child_mother;
+        document.getElementById('editChildFather').value = infant.child_father;
+        document.getElementById('editChildGender').value = infant.child_gender;
+        document.getElementById('editChildHeight').value = infant.child_height;
+        document.getElementById('editChildWeight').value = infant.child_weight;
 
-                // Show the edit modal
-                document.getElementById('editInfantModal').classList.remove('hidden');
-            } catch (error) {
-                console.error('Error fetching infant record:', error);
-                alert('Failed to fetch infant record. Please try again.');
-            }
+        // Populate immunization fields
+        if (infant.immunization) {
+            const immunization = infant.immunization;
+
+            // BCG Vaccine
+            document.getElementById('bcg_date').value = immunization.bcg_date || '';
+            document.getElementById('remarks-bcg').textContent = immunization.bcg_date ? 'Complete' : 'Not Started';
+
+            // Hepatitis B Vaccine
+            document.getElementById('hepatitis_b_date').value = immunization.hepatitis_b_date || '';
+            document.getElementById('remarks-hepatitis-b').textContent = immunization.hepatitis_b_date ? 'Complete' : 'Not Started';
+
+            // Pentavalent Vaccine
+            document.getElementById('pentavalent_date_1').value = immunization.pentavalent_date_1 || '';
+            document.getElementById('pentavalent_date_2').value = immunization.pentavalent_date_2 || '';
+            document.getElementById('pentavalent_date_3').value = immunization.pentavalent_date_3 || '';
+            document.getElementById('remarks-pentavalent').textContent =
+                immunization.pentavalent_date_1 && immunization.pentavalent_date_2 && immunization.pentavalent_date_3
+                    ? 'Complete'
+                    : (immunization.pentavalent_date_1 || immunization.pentavalent_date_2 || immunization.pentavalent_date_3
+                        ? 'Incomplete'
+                        : 'Not Started');
+
+            // Oral Polio Vaccine (OPV)
+            document.getElementById('opv_date_1').value = immunization.opv_date_1 || '';
+            document.getElementById('opv_date_2').value = immunization.opv_date_2 || '';
+            document.getElementById('opv_date_3').value = immunization.opv_date_3 || '';
+            document.getElementById('remarks-opv').textContent =
+                immunization.opv_date_1 && immunization.opv_date_2 && immunization.opv_date_3
+                    ? 'Complete'
+                    : (immunization.opv_date_1 || immunization.opv_date_2 || immunization.opv_date_3
+                        ? 'Incomplete'
+                        : 'Not Started');
+
+            // Inactivated Polio Vaccine (IPV)
+            document.getElementById('ipv_date_1').value = immunization.ipv_date_1 || '';
+            document.getElementById('ipv_date_2').value = immunization.ipv_date_2 || '';
+            document.getElementById('remarks-ipv').textContent =
+                immunization.ipv_date_1 && immunization.ipv_date_2
+                    ? 'Complete'
+                    : (immunization.ipv_date_1 || immunization.ipv_date_2
+                        ? 'Incomplete'
+                        : 'Not Started');
+
+            // Pneumococcal Conjugate Vaccine (PCV)
+            document.getElementById('pcv_date_1').value = immunization.pcv_date_1 || '';
+            document.getElementById('pcv_date_2').value = immunization.pcv_date_2 || '';
+            document.getElementById('pcv_date_3').value = immunization.pcv_date_3 || '';
+            document.getElementById('remarks-pcv').textContent =
+                immunization.pcv_date_1 && immunization.pcv_date_2 && immunization.pcv_date_3
+                    ? 'Complete'
+                    : (immunization.pcv_date_1 || immunization.pcv_date_2 || immunization.pcv_date_3
+                        ? 'Incomplete'
+                        : 'Not Started');
+
+            // Measles, Mumps, Rubella Vaccine (MMR)
+            document.getElementById('mmr_date_1').value = immunization.mmr_date_1 || '';
+            document.getElementById('mmr_date_2').value = immunization.mmr_date_2 || '';
+            document.getElementById('remarks-mmr').textContent =
+                immunization.mmr_date_1 && immunization.mmr_date_2
+                    ? 'Complete'
+                    : (immunization.mmr_date_1 || immunization.mmr_date_2
+                        ? 'Incomplete'
+                        : 'Not Started');
         }
 
-        document.addEventListener('input', function (event) {
-        const inputs = [
-            { date: 'bcg_date', remarks: 'remarks-bcg' },
-            { date: 'hepatitis_b_date', remarks: 'remarks-hepatitis-b' },
-            { date: 'pentavalent_date_1', remarks: 'remarks-pentavalent' },
-            { date: 'opv_date_1', remarks: 'remarks-opv' },
-            { date: 'ipv_date_1', remarks: 'remarks-ipv' },
-            { date: 'pcv_date_1', remarks: 'remarks-pcv' },
-            { date: 'mmr_date_1', remarks: 'remarks-mmr' }
-        ];
+        // Update the form action
+        document.getElementById('editInfantForm').action = `/infants/${infant.id}`;
 
-        inputs.forEach(({ date, remarks }) => {
-            const input = document.getElementById(date);
-            const remarksEl = document.getElementById(remarks);
-            if (input && remarksEl) {
-                remarksEl.textContent = input.value ? 'Complete' : 'Incomplete';
+        // Show the modal
+        document.getElementById('editInfantModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Error fetching infant record:', error);
+        alert('Failed to fetch infant record. Please try again.');
+    }
+}
+// Event listener for input changes
+document.addEventListener('input', function (event) {
+    const target = event.target;
+    const idParts = target.id.split('_');
+    if (idParts.length > 2) {
+        const infantId = idParts[idParts.length - 1]; // Extract infant ID from the input's ID
+
+        // Group inputs by vaccine type
+        const vaccineGroups = {
+            'bcg': ['bcg_date'],
+            'hepatitis-b': ['hepatitis_b_date'],
+            'pentavalent': ['pentavalent_date_1', 'pentavalent_date_2', 'pentavalent_date_3'],
+            'opv': ['opv_date_1', 'opv_date_2', 'opv_date_3'],
+            'ipv': ['ipv_date_1', 'ipv_date_2'],
+            'pcv': ['pcv_date_1', 'pcv_date_2', 'pcv_date_3'],
+            'mmr': ['mmr_date_1', 'mmr_date_2']
+        };
+
+        // Update remarks for each vaccine group
+        for (const [vaccine, fields] of Object.entries(vaccineGroups)) {
+            const allDosesComplete = fields.every(field => {
+                const input = document.getElementById(`${field}_${infantId}`);
+                return input && input.value; // Check if all doses have a value
+            });
+
+            const remarksEl = document.getElementById(`remarks-${vaccine}_${infantId}`);
+            if (remarksEl) {
+                if (fields.length === 1) {
+                    // Single-dose vaccines (BCG, Hepatitis B)
+                    remarksEl.textContent = allDosesComplete ? 'Complete' : 'Not Started';
+                } else {
+                    // Multi-dose vaccines (Pentavalent, OPV, IPV, PCV, MMR)
+                    const anyDoseStarted = fields.some(field => {
+                        const input = document.getElementById(`${field}_${infantId}`);
+                        return input && input.value;
+                    });
+
+                    if (allDosesComplete) {
+                        remarksEl.textContent = 'Complete';
+                    } else if (anyDoseStarted) {
+                        remarksEl.textContent = 'Incomplete';
+                    } else {
+                        remarksEl.textContent = 'Not Started';
+                    }
+                }
             }
-        });
-    });
-
+        }
+    }
+});
       // Function to calculate age based on the date of birth
       function calculateAge(dateOfBirth) {
         const today = new Date();
@@ -688,4 +780,3 @@ document.getElementById('editPartnerBday')?.addEventListener('change', function 
 </body>
 </html>
 
-sa partners age naman   

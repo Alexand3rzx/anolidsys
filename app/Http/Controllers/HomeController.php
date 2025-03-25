@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Medicine;
 use App\Models\Beneficiary;
+use App\Models\Pregnant;
+use App\Models\Infant;
 use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
@@ -21,16 +23,27 @@ class HomeController extends Controller
             // Fetch medicine data
             $medicines = Medicine::select('name', 'stock')->get();
 
-            // Fetch count of beneficiaries
-            $pregnantCount = Beneficiary::where('category', 'Pregnant')->count();
-            $infantCount = Beneficiary::where('category', 'Infant')->count();
+            // Fetch pregnant statistics
+            $pregnantBelow18 = Pregnant::where('prgage', '<', 18)->count();
+            $pregnantAbove18 = Pregnant::where('prgage', '>=', 18)->count();
 
-            return view('admin.adminhome', compact('medicines', 'pregnantCount', 'infantCount'));
+            // Fetch infant gender statistics
+            $infantMale = Infant::where('child_gender', 'Male')->count();
+            $infantFemale = Infant::where('child_gender', 'Female')->count();
+
+            return view('admin.adminhome', compact(
+                'medicines', 
+                'pregnantBelow18', 
+                'pregnantAbove18', 
+                'infantMale', 
+                'infantFemale'
+            ));
         } else {
             return redirect()->back();
         }
     }
 }
+
 
     
 }

@@ -39,10 +39,11 @@
             <div class="flex gap-6">
 
 
-           <!-- Pregnant Women Table (Left Side) -->
+           <!-- Pregnant Women Table -->
 <div class="w-1/2 bg-white p-6 rounded-lg shadow-md">
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-2xl font-semibold">Pregnant Women</h3>
+        <input type="text" id="pregnantSearch" class="border p-2 rounded" placeholder="Search..." onkeyup="searchPregnant()">
         <button onclick="toggleModal()" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
             + Add Pregnant
         </button>
@@ -56,7 +57,7 @@
                 <th class="p-3 border">Address</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="pregnantTableBody">
             @forelse($pregnantWomen as $woman)
                 <tr onclick="openEditModal({{ $woman->id }})" class="cursor-pointer hover:bg-gray-100">
                     <td class="p-3 border">{{ $woman->prgname }}</td>
@@ -70,18 +71,22 @@
             @endforelse
         </tbody>
     </table>
+
+    <!-- Pagination Links -->
+    <div class="mt-4">
+        {{ $pregnantWomen->links() }}
+    </div>
 </div>
 
-<!-- Infants Table (Right Side) -->
+<!-- Infants Table -->
 <div class="w-1/2 bg-white p-6 rounded-lg shadow-md">
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-2xl font-semibold">Infants</h3>
+        <input type="text" id="infantSearch" class="border p-2 rounded" placeholder="Search..." onkeyup="searchInfants()">
         <button onclick="toggleInfantModal()" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
             + Add Infant
         </button>
     </div>
-
-
 
     <table id="infantsTable" class="w-full border-collapse bg-white shadow-lg">
         <thead>
@@ -92,7 +97,7 @@
                 <th class="p-3 border">Gender</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="infantsTableBody">
             @forelse($infants as $infant)
                 <tr onclick="openEditInfantModal({{ $infant->id }})" class="cursor-pointer hover:bg-gray-100">
                     <td class="p-3 border">{{ $infant->child_name }}</td>
@@ -107,6 +112,11 @@
             @endforelse
         </tbody>
     </table>
+
+    <!-- Pagination Links -->
+    <div class="mt-4">
+        {{ $infants->links() }}
+    </div>
 </div>
 
   <!-- Add Pregnant Woman Modal -->
@@ -290,6 +300,7 @@
                     </div>
                 </div>
 
+                
                 <!-- Immunization Section -->
                 <div class="mt-8">
                     <h3 class="text-2xl font-bold mb-6">Immunization</h3>
@@ -429,7 +440,7 @@
                     <input type="date" name="prgbday" id="editPrgbday" class="border p-2 w-full rounded mb-4" required>
 
                     <label class="block mb-2">Age</label>
-                    <input type="number" name="prgage" id="editPrgage" class="border p-2 w-full rounded mb-4" required>
+<input type="number" name="prgage" id="editPrgage" class="border p-2 w-full rounded mb-4 bg-gray-100 cursor-not-allowed" readonly>
 
                     <label class="block mb-2">Address</label>
                     <input type="text" name="prgaddress" id="editPrgaddress" class="border p-2 w-full rounded mb-4" required>
@@ -457,7 +468,7 @@
                     <input type="text" name="partner_name" id="editPartnerName" class="border p-2 w-full rounded mb-4">
 
                     <label class="block mb-2">Partner's Age</label>
-                    <input type="number" name="partner_age" id="editPartnerAge" class="border p-2 w-full rounded mb-4">
+<input type="number" name="partner_age" id="editPartnerAge" class="border p-2 w-full rounded mb-4 bg-gray-100 cursor-not-allowed" readonly>
 
                     <label class="block mb-2">Partner's Date of Birth</label>
                     <input type="date" name="partner_bday" id="editPartnerBday" class="border p-2 w-full rounded mb-4">
@@ -775,7 +786,65 @@ document.getElementById('editPartnerBday')?.addEventListener('change', function 
 });
 
 
+function searchPregnant() {
+    let input = document.getElementById("pregnantSearch").value.toLowerCase();
+    let table = document.getElementById("pregnantTableBody");
+    let rows = table.getElementsByTagName("tr");
 
+    for (let row of rows) {
+        let name = row.cells[0]?.innerText.toLowerCase();
+        let age = row.cells[1]?.innerText.toLowerCase();
+        let address = row.cells[2]?.innerText.toLowerCase();
+        
+        if (name.includes(input) || age.includes(input) || address.includes(input)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    }
+}
+
+document.getElementById("pregnantSearch").addEventListener("keyup", function () {
+    let query = this.value;
+
+    fetch(`/search-pregnant?query=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            let tableBody = document.getElementById("pregnantTableBody");
+            tableBody.innerHTML = "";
+
+            if (data.length > 0) {
+                data.forEach(woman => {
+                    let row = `<tr onclick="openEditModal(${woman.id})" class="cursor-pointer hover:bg-gray-100">
+                        <td class="p-3 border">${woman.prgname}</td>
+                        <td class="p-3 border">${woman.prgage}</td>
+                        <td class="p-3 border">${woman.prgaddress}</td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="3" class="p-3 text-center border">No records found.</td></tr>`;
+            }
+        });
+});
+
+function searchInfants() {
+    let input = document.getElementById("infantSearch").value.toLowerCase();
+    let rows = document.querySelectorAll("#infantsTableBody tr");
+
+    rows.forEach(row => {
+        let name = row.cells[0].textContent.toLowerCase();
+        let dob = row.cells[1].textContent.toLowerCase();
+        let mother = row.cells[2].textContent.toLowerCase();
+        let gender = row.cells[3].textContent.toLowerCase();
+
+        if (name.includes(input) || dob.includes(input) || mother.includes(input) || gender.includes(input)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
     </script>
 </body>
 </html>

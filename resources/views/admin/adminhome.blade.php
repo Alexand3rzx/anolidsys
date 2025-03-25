@@ -58,20 +58,25 @@
     </div>
 </div>
 
-        <!-- Beneficiary Statistics Section -->
-<div class="grid grid-cols-2 gap-4">
-    <!-- Pregnant Count Box -->
-    <div class="bg-gray-700 text-white shadow-lg rounded-lg p-6 flex flex-col items-center">
-        <h3 class="text-2xl font-bold">Pregnant Women</h3>
-        <p class="text-4xl font-extrabold mt-2">{{ $pregnantCount }}</p>
+<!-- Pregnant & Infant Pie Charts Section -->
+<div class="flex flex-wrap md:flex-nowrap gap-6">
+    <!-- Pregnant Age Breakdown -->
+    <div class="bg-pink-100 shadow rounded-lg p-6 w-full md:w-1/2 h-96">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pregnant Age Breakdown</h3>
+        <div class="flex justify-center items-center h-full">
+            <canvas id="pregnantAgeChart"></canvas>
+        </div>
     </div>
 
-    <!-- Infant Count Box -->
-    <div class="bg-gray-500 text-white shadow-lg rounded-lg p-6 flex flex-col items-center">
-        <h3 class="text-2xl font-bold">Infants</h3>
-        <p class="text-4xl font-extrabold mt-2">{{ $infantCount }}</p>
+    <!-- Infant Gender Breakdown -->
+    <div class="bg-pink-100 shadow rounded-lg p-6 w-full md:w-1/2 h-96">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Infant Gender Breakdown</h3>
+        <div class="flex justify-center items-center h-full">
+            <canvas id="infantGenderChart"></canvas>
+        </div>
     </div>
 </div>
+       
     </main>
 
    <!-- Include Chart.js datalabels plugin -->
@@ -184,7 +189,58 @@
             }
         });
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Pregnant Age Data
+        const pregnantData = {
+            labels: ["Below 18", "18 and Above"],
+            datasets: [{
+                data: [@json($pregnantBelow18), @json($pregnantAbove18)],
+                backgroundColor: ["#FF6384", "#36A2EB"],
+                hoverBackgroundColor: ["#FF4C64", "#2680C2"]
+            }]
+        };
+
+        // Infant Gender Data
+        const infantGenderData = {
+            labels: ["Male", "Female"],
+            datasets: [{
+                data: [@json($infantMale), @json($infantFemale)],
+                backgroundColor: ["#4BC0C0", "#FF9F40"],
+                hoverBackgroundColor: ["#3B9090", "#D87C20"]
+            }]
+        };
+
+        // Chart Options
+        const pieChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                },
+                tooltip: {
+                    enabled: true
+                }
+            }
+        };
+
+        // Create Pie Charts
+        new Chart(document.getElementById("pregnantAgeChart"), {
+            type: "pie",
+            data: pregnantData,
+            options: pieChartOptions
+        });
+
+        new Chart(document.getElementById("infantGenderChart"), {
+            type: "pie",
+            data: infantGenderData,
+            options: pieChartOptions
+        });
+    });
 </script>
+
+
 
 
 

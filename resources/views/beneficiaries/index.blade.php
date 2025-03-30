@@ -39,85 +39,90 @@
             <div class="flex gap-6">
 
 
-           <!-- Pregnant Women Table -->
-<div class="w-1/2 bg-white p-6 rounded-lg shadow-md">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-semibold">Pregnant Women</h3>
-        <input type="text" id="pregnantSearch" class="border p-2 rounded" placeholder="Search..." onkeyup="searchPregnant()">
-        <button onclick="toggleModal()" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
-            + Add Pregnant
-        </button>
+           <!-- Pregnant Women Table Container -->
+<div class="flex flex-col w-full space-y-6">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-semibold">Pregnant Women</h3>
+            <input type="text" id="pregnantSearch" class="border p-2 rounded" placeholder="Search..." onkeyup="searchPregnant()">
+            <button onclick="toggleModal()" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                + Add Pregnant
+            </button>
+        </div>
+
+        <table id="pregnantTable" class="w-full border-collapse bg-white shadow-lg">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="p-3 border">Name</th>
+                    <th class="p-3 border">Age</th>
+                    <th class="p-3 border">Address</th>
+                </tr>
+            </thead>
+            <tbody id="pregnantTableBody">
+                @forelse($pregnantWomen as $woman)
+                    <tr onclick="openEditModal({{ $woman->id }})" class="cursor-pointer hover:bg-gray-100">
+                        <td class="p-3 border">{{ $woman->prgname }}</td>
+                        <td class="p-3 border">{{ $woman->prgage }}</td>
+                        <td class="p-3 border">{{ $woman->prgaddress }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3" class="p-3 text-center border">No records found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <!-- Pagination Links -->
+        <div class="mt-4">
+            {{ $pregnantWomen->appends(['infant_page' => request('infant_page')])->links() }}
+        </div>
     </div>
+</div>
 
-    <table id="pregnantTable" class="w-full border-collapse bg-white shadow-lg">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="p-3 border">Name</th>
-                <th class="p-3 border">Age</th>
-                <th class="p-3 border">Address</th>
-            </tr>
-        </thead>
-        <tbody id="pregnantTableBody">
-            @forelse($pregnantWomen as $woman)
-                <tr onclick="openEditModal({{ $woman->id }})" class="cursor-pointer hover:bg-gray-100">
-                    <td class="p-3 border">{{ $woman->prgname }}</td>
-                    <td class="p-3 border">{{ $woman->prgage }}</td>
-                    <td class="p-3 border">{{ $woman->prgaddress }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="3" class="p-3 text-center border">No records found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+<!-- Infants Table Container -->
+<div class="flex flex-col w-full space-y-6">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-semibold">Infants</h3>
+            <input type="text" id="infantSearch" class="border p-2 rounded" placeholder="Search..." onkeyup="searchInfants()">
+            <button onclick="toggleInfantModal()" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                + Add Infant
+            </button>
+        </div>
 
-    <!-- Pagination Links -->
-    <div class="mt-4">
-        {{ $pregnantWomen->links() }}
+        <table id="infantsTable" class="w-full border-collapse bg-white shadow-lg">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="p-3 border">Child's Name</th>
+                    <th class="p-3 border">Date of Birth</th>
+                    <th class="p-3 border">Mother's Name</th>
+                    <th class="p-3 border">Gender</th>
+                </tr>
+            </thead>
+            <tbody id="infantsTableBody">
+                @forelse($infants as $infant)
+                    <tr onclick="openEditInfantModal({{ $infant->id }})" class="cursor-pointer hover:bg-gray-100">
+                        <td class="p-3 border">{{ $infant->child_name }}</td>
+                        <td class="p-3 border">{{ $infant->child_bday }}</td>
+                        <td class="p-3 border">{{ $infant->child_mother }}</td>
+                        <td class="p-3 border">{{ $infant->child_gender }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="p-3 text-center border">No records found.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+
+        <!-- Pagination Links -->
+        <div class="mt-4">
+            {{ $infants->appends(['pregnant_page' => request('pregnant_page')])->links() }}
+        </div>
     </div>
 </div>
 
-<!-- Infants Table -->
-<div class="w-1/2 bg-white p-6 rounded-lg shadow-md">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-semibold">Infants</h3>
-        <input type="text" id="infantSearch" class="border p-2 rounded" placeholder="Search..." onkeyup="searchInfants()">
-        <button onclick="toggleInfantModal()" class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
-            + Add Infant
-        </button>
-    </div>
-
-    <table id="infantsTable" class="w-full border-collapse bg-white shadow-lg">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="p-3 border">Child's Name</th>
-                <th class="p-3 border">Date of Birth</th>
-                <th class="p-3 border">Mother's Name</th>
-                <th class="p-3 border">Gender</th>
-            </tr>
-        </thead>
-        <tbody id="infantsTableBody">
-            @forelse($infants as $infant)
-                <tr onclick="openEditInfantModal({{ $infant->id }})" class="cursor-pointer hover:bg-gray-100">
-                    <td class="p-3 border">{{ $infant->child_name }}</td>
-                    <td class="p-3 border">{{ $infant->child_bday }}</td>
-                    <td class="p-3 border">{{ $infant->child_mother }}</td>
-                    <td class="p-3 border">{{ $infant->child_gender }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="4" class="p-3 text-center border">No records found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <!-- Pagination Links -->
-    <div class="mt-4">
-        {{ $infants->links() }}
-    </div>
-</div>
 
   <!-- Add Pregnant Woman Modal -->
 <div id="pregnantModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">

@@ -85,3 +85,4 @@ Route::put('/infants/{id}/immunization', [ImmunizationController::class, 'update
 Route::get('/infants/{id}/edit', [InfantController::class, 'edit'])->name('infants.edit');
 
 Route::get('/search-pregnant', [BeneficiaryController::class, 'searchPregnant']);
+

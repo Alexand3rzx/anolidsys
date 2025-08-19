@@ -27,7 +27,7 @@
             <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
             <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
             <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
-           
+            <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
         </nav>
         <footer class="p-4">
             <form method="POST" action="{{ route('logout') }}">
@@ -46,204 +46,67 @@
             <p class="text-gray-600">Welcome to the Health Management System</p>
         </header>
 
-       <!-- Chart Section -->
-<div class="bg-pink-100 shadow rounded-lg p-6 mb-6">
-    <h3 class="text-xl font-semibold mb-4 text-gray-800">Medicine Inventory</h3>
-    <div class="flex justify-center items-center h-80">
-        <canvas id="medicineStockChart" class="w-full h-full"></canvas>
-    </div>
-    <div class="flex justify-center mt-4">
-        <button id="prevPage" class="bg-red-500 text-white px-4 py-2 rounded mr-2">Previous</button>
-        <button id="nextPage" class="bg-red-500 text-white px-4 py-2 rounded">Next</button>
-    </div>
-</div>
+        <!-- Updated Medicine Inventory Section -->
+        <section class="bg-white shadow rounded-lg p-6 mb-6">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">Medicine Inventory Overview</h3>
 
-<!-- Pregnant & Infant Pie Charts Section -->
-<div class="flex flex-wrap md:flex-nowrap gap-6">
-    <!-- Pregnant Age Breakdown -->
-    <div class="bg-pink-100 shadow rounded-lg p-6 w-full md:w-1/2 h-96">
-        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pregnant Age Breakdown</h3>
-        <div class="flex justify-center items-center h-full">
-            <canvas id="pregnantAgeChart"></canvas>
-        </div>
-    </div>
+            @php
+                $totalMedicines = $medicines->count();
+                $lowStockCount = $medicines->where('stock', '<', 20)->count();
+                $outOfStockCount = $medicines->where('stock', '<=', 0)->count();
+                $expiringSoonCount = 0; // Add logic if expiration dates exist
+            @endphp
 
-    <!-- Infant Gender Breakdown -->
-    <div class="bg-pink-100 shadow rounded-lg p-6 w-full md:w-1/2 h-96">
-        <h3 class="text-xl font-semibold mb-4 text-gray-800">Infant Gender Breakdown</h3>
-        <div class="flex justify-center items-center h-full">
-            <canvas id="infantGenderChart"></canvas>
-        </div>
-    </div>
-</div>
-       
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-red-100 p-4 rounded shadow">
+                    <p class="text-gray-600">Total Medicines</p>
+                    <h2 class="text-2xl font-bold text-red-800">{{ $totalMedicines }}</h2>
+                </div>
+                <div class="bg-yellow-100 p-4 rounded shadow">
+                    <p class="text-gray-600">Low Stock Items (&lt; 20)</p>
+                    <h2 class="text-2xl font-bold text-yellow-700">{{ $lowStockCount }}</h2>
+                </div>
+                <div class="bg-orange-100 p-4 rounded shadow">
+                    <p class="text-gray-600">Expiring Soon</p>
+                    <h2 class="text-2xl font-bold text-orange-700">{{ $expiringSoonCount }}</h2>
+                </div>
+                <div class="bg-green-100 p-4 rounded shadow">
+                    <p class="text-gray-600">Out of Stock</p>
+                    <h2 class="text-2xl font-bold text-green-800">{{ $outOfStockCount }}</h2>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold text-gray-700 mb-2">Medicine Stock Table</h4>
+                <table class="w-full border border-gray-200 text-sm">
+                    <thead class="bg-gray-100 text-gray-700">
+                        <tr>
+                            <th class="text-left p-2 border">Medicine</th>
+                            <th class="text-left p-2 border">Stock Left</th>
+                            <th class="text-left p-2 border">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($medicines as $medicine)
+                            <tr class="border-t">
+                                <td class="p-2 border">{{ $medicine->name }}</td>
+                                <td class="p-2 border">{{ $medicine->stock }}</td>
+                                <td class="p-2 border">
+                                    @if ($medicine->stock <= 0)
+                                        <span class="text-red-600 font-semibold">Out of Stock</span>
+                                    @elseif ($medicine->stock < 20)
+                                        <span class="text-yellow-600 font-semibold">Low Stock</span>
+                                    @else
+                                        <span class="text-green-600 font-semibold">Available</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     </main>
-
-   <!-- Include Chart.js datalabels plugin -->
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-
-<!-- Include Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const ctx = document.getElementById('medicineStockChart').getContext('2d');
-
-        // Medicines data from the server
-        const medicineNames = @json($medicines->pluck('name'));
-        const medicineStocks = @json($medicines->pluck('stock'));
-
-        const medicinesPerPage = 8;
-        let currentPage = 1;
-
-        // Function to update chart data based on the current page
-        function updateChartData(page) {
-            const startIndex = (page - 1) * medicinesPerPage;
-            const endIndex = startIndex + medicinesPerPage;
-            const pageMedicines = medicineNames.slice(startIndex, endIndex);
-            const pageStocks = medicineStocks.slice(startIndex, endIndex);
-
-            chart.data.labels = pageMedicines;
-            chart.data.datasets[0].data = pageStocks;
-            chart.update();
-        }
-
-        // Initialize the chart with the first page
-        const chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [], // Will be populated later
-                datasets: [{
-                    label: 'Stock Count',
-                    data: [], // Will be populated later
-                    backgroundColor: 'rgba(220, 38, 38, 0.6)', // Your red color
-                    borderColor: 'rgba(220, 38, 38, 1)', // Border color
-                    borderWidth: 1,
-                    borderRadius: 4, // Rounded corners for bars
-                    hoverBackgroundColor: 'rgba(220, 38, 38, 0.8)', // Darker on hover
-                }]
-            },
-            options: {
-                indexAxis: 'y', // Horizontal bars
-                responsive: true,
-                maintainAspectRatio: false, // Allow chart to adjust to container size
-                scales: {
-                    x: { 
-                        display: false, // Hide x-axis (bottom numbers)
-                    },
-                    y: { 
-                        grid: {
-                            display: false, // Remove grid lines for y-axis
-                        },
-                        ticks: {
-                            autoSkip: false, // Prevent labels from being skipped
-                            font: {
-                                size: 12, // Font size for y-axis labels
-                            },
-                        },
-                    },
-                },
-                plugins: {
-                    legend: {
-                        display: false, // Hide legend (optional)
-                    },
-                    tooltip: {
-                        enabled: true,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)', // Dark tooltip background
-                        titleFont: { size: 14 },
-                        bodyFont: { size: 12 },
-                        padding: 10,
-                        cornerRadius: 4,
-                    },
-                    datalabels: { // Plugin to display stock totals beside bars
-                        anchor: 'end', // Position the label at the end of the bar
-                        align: 'right', // Align the label to the right
-                        color: 'rgba(0, 0, 0, 0.8)', // Dark text color
-                        font: {
-                            size: 12, // Font size for the labels
-                            weight: 'bold', // Bold text
-                        },
-                        formatter: (value) => {
-                            return value; // Display the stock count
-                        },
-                    },
-                },
-            },
-        });
-
-        // Initial load with first page
-        updateChartData(currentPage);
-
-        // Pagination buttons
-        document.getElementById('prevPage').addEventListener('click', function() {
-            if (currentPage > 1) {
-                currentPage--;
-                updateChartData(currentPage);
-            }
-        });
-
-        document.getElementById('nextPage').addEventListener('click', function() {
-            if (currentPage * medicinesPerPage < medicineNames.length) {
-                currentPage++;
-                updateChartData(currentPage);
-            }
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded", function () {
-        // Pregnant Age Data
-        const pregnantData = {
-            labels: ["Below 18", "18 and Above"],
-            datasets: [{
-                data: [@json($pregnantBelow18), @json($pregnantAbove18)],
-                backgroundColor: ["#FF6384", "#36A2EB"],
-                hoverBackgroundColor: ["#FF4C64", "#2680C2"]
-            }]
-        };
-
-        // Infant Gender Data
-        const infantGenderData = {
-            labels: ["Male", "Female"],
-            datasets: [{
-                data: [@json($infantMale), @json($infantFemale)],
-                backgroundColor: ["#4BC0C0", "#FF9F40"],
-                hoverBackgroundColor: ["#3B9090", "#D87C20"]
-            }]
-        };
-
-        // Chart Options
-        const pieChartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: "bottom"
-                },
-                tooltip: {
-                    enabled: true
-                }
-            }
-        };
-
-        // Create Pie Charts
-        new Chart(document.getElementById("pregnantAgeChart"), {
-            type: "pie",
-            data: pregnantData,
-            options: pieChartOptions
-        });
-
-        new Chart(document.getElementById("infantGenderChart"), {
-            type: "pie",
-            data: infantGenderData,
-            options: pieChartOptions
-        });
-    });
-</script>
-
-
-
-
-
-
 </body>
 </html>

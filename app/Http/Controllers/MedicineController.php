@@ -7,22 +7,25 @@ use Illuminate\Http\Request;
 
 class MedicineController extends Controller
 {
-    public function index(Request $request)
-    {
-        $search = $request->input('search');
-    
-        $medicines = Medicine::when($search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('details', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name', 'asc') // Order by medicine name alphabetically
-            ->paginate(6) // Display 6 medicines per page
-            ->appends(['search' => $search]); // Retain search query during pagination
-    
-        return view('medicines.index', compact('medicines'));
+   public function index(Request $request)
+{
+    $search = $request->input('search');
+
+    $medicines = Medicine::when($search, function ($query, $search) {
+            return $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('details', 'like', "%{$search}%");
+            });
+        })
+        ->orderBy('name', 'asc')
+        ->paginate(6)
+        ->appends(['search' => $search]);
+
+      // Check if user is admin or not
+    if (auth()->user()->usertype === 'admin') {
+        return view('medicines.index', compact('medicines')); // admin view
     }
+}
 
     public function create()
     {
@@ -141,6 +144,9 @@ class MedicineController extends Controller
     // Redirect back with a success message
     return redirect()->route('medicines.index')->with('success', 'Medicine deleted successfully.');
 }
+
+
+
 
     
 }

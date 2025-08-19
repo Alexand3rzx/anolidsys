@@ -1,52 +1,63 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+</head>
+<body>
+    <div style="padding: 20px;">
+        <h2>Register an Account</h2>
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        @if ($errors->any())
+            <div style="color: red;">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('register') }}">
+            @csrf
+
+            <div>
+                <label>Name:</label><br>
+                <input type="text" name="name" value="{{ old('name') }}" required>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <label>Email:</label><br>
+                <input type="email" name="email" value="{{ old('email') }}" required>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <label>Password:</label><br>
+                <input type="password" name="password" required>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <label>Confirm Password:</label><br>
+                <input type="password" name="password_confirmation" required>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <label>I am a:</label><br>
+                <select name="beneficiary_type" required>
+                    <option value="">-- Select --</option>
+                    <option value="pregnant">Pregnant</option>
+                    <option value="senior">Senior Citizen</option>
+                    <option value="normal">Normal Beneficiary</option>
+                </select>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button type="submit">Register</button>
+            </div>
+        </form>
+
+        <div style="margin-top: 10px;">
+            <a href="{{ route('login') }}">Already have an account? Login</a>
         </div>
-
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ml-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+    </div>
+</body>
+</html>

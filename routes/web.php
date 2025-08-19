@@ -7,6 +7,8 @@ use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\PregnantController;
 use App\Http\Controllers\InfantController;
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\UserAdminController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -38,6 +40,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::resource('medicines', MedicineController::class);
 
+    
     // Receive, Give, Edit, and Delete actions
     //Route::post('medicines/{medicine}/receive', [MedicineController::class, 'receive'])->name('medicines.receive');
     //Route::post('medicines/{medicine}/give', [MedicineController::class, 'give'])->name('medicines.give');
@@ -48,6 +51,7 @@ Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])->
     Route::delete('medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
     Route::put('medicines/{medicine}', [MedicineController::class, 'update'])->name('medicines.update');
     Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
+
 
 });
 
@@ -86,3 +90,22 @@ Route::get('/infants/{id}/edit', [InfantController::class, 'edit'])->name('infan
 
 Route::get('/search-pregnant', [BeneficiaryController::class, 'searchPregnant']);
 
+Route::get('/register', [RegisterController::class])->name('register');
+
+// Show register form
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+
+// Handle register form submission
+Route::post('/register', [RegisterController::class, 'register']);
+
+
+Route::get('/dashboard', function () {
+    return view('dashboard'); // make sure this matches your blade file name
+})->middleware(['auth'])->name('dashboard');
+
+Route::get('/medicine_request', function () {
+    return view('/medicines/medicine_request');
+})->middleware(['auth'])->name('medicine.request');
+
+Route::get('/useradmin/create', [UserAdminController::class, 'create'])->name('useradmin.create');
+Route::post('/useradmin/store', [UserAdminController::class, 'store'])->name('useradmin.store');

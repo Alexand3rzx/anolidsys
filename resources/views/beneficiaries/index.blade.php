@@ -10,26 +10,29 @@
 
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
-            <div class="p-6">
-                <h1 class="text-2xl font-bold">Health Management System</h1>
-                <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
-            </div>
-            <nav class="flex-grow">
-                <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
-                <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
-                <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 bg-red-600">Beneficiaries</a>
-                
-            </nav>
-            <footer class="p-4">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
-                        Logout
-                    </button>
-                </form>
-            </footer>
-        </aside>
+<aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
+    <div class="p-6">
+        <h1 class="text-2xl font-bold">Health Management System</h1>
+        <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
+    </div>
+    <nav class="flex-grow">
+        <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
+        <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
+        <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
+
+        @if(Auth::check() && Auth::user()->usertype === 'admin')
+            <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
+        @endif
+    </nav>
+    <footer class="p-4">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
+                Logout
+            </button>
+        </form>
+    </footer>
+</aside>
 
         <!-- Main Content -->
         <main class="flex-grow p-6">

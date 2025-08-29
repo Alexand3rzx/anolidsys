@@ -18,6 +18,7 @@ return new class extends Migration
         $table->string('name');
         $table->text('details');
         $table->integer('stock')->default(0);
+        $table->string('purok');
         $table->timestamps();
     });
 }

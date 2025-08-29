@@ -7,11 +7,27 @@ use Illuminate\Http\Request;
 
 class MedicineController extends Controller
 {
-   public function index(Request $request)
+  public function index(Request $request)
 {
     $search = $request->input('search');
+    $user = auth()->user();
 
-    $medicines = Medicine::when($search, function ($query, $search) {
+    $query = Medicine::query();
+
+   if ($user->usertype === 'admin') {
+    // Admin sees all medicines
+    // no additional filter
+} elseif ($user->usertype === 'useradmin') {
+    // Useradmin only sees medicines in their own purok
+    $query->where('purok', $user->purok)
+          ->where('purok', '!=', 'adminpurok'); // exclude adminpurok
+} else {
+    abort(403, 'Unauthorized');
+}
+
+
+    // Apply search filter
+    $medicines = $query->when($search, function ($query, $search) {
             return $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('details', 'like', "%{$search}%");
@@ -21,38 +37,37 @@ class MedicineController extends Controller
         ->paginate(6)
         ->appends(['search' => $search]);
 
-      // Check if user is admin or not
-    if (auth()->user()->usertype === 'admin') {
-        return view('medicines.index', compact('medicines')); // admin view
-    }
+    return view('medicines.index', compact('medicines'));
 }
+
 
     public function create()
     {
         return view('medicines.create');
     }
 
-    // Store new medicine in the database
-    public function store(Request $request)
-    {
-        // Validate the incoming request
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'details' => 'required|string',
-            'stock' => 'required|integer|min:0',
-            'expiration' => 'required|date', // New validation rule for expiration
-        ]);
+   // Store new medicine in the database
+public function store(Request $request)
+{
+    // Validate the incoming request
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'details' => 'required|string',
+        'stock' => 'required|integer|min:0',
+        'expiration' => 'required|date',
+    ]);
 
-        // Create a new medicine record
-        Medicine::create([
-            'name' => $validated['name'],
-            'details' => $validated['details'],
-            'stock' => $validated['stock'],
-            'expiration' => $validated['expiration'],
-        ]);
+    // Create a new medicine record with forced adminpurok
+    Medicine::create([
+        'name' => $validated['name'],
+        'details' => $validated['details'],
+        'stock' => $validated['stock'],
+        'expiration' => $validated['expiration'],
+        'purok' => 'adminpurok', // ✅ always tag as adminpurok
+    ]);
 
-        return redirect()->route('medicines.index')->with('success', 'Medicine added successfully!');
-    }
+    return redirect()->route('medicines.index')->with('success', 'Medicine added successfully!');
+}
 
     public function edit(Medicine $medicine)
     {

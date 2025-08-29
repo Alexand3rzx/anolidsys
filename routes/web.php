@@ -109,3 +109,15 @@ Route::get('/medicine_request', function () {
 
 Route::get('/useradmin/create', [UserAdminController::class, 'create'])->name('useradmin.create');
 Route::post('/useradmin/store', [UserAdminController::class, 'store'])->name('useradmin.store');
+Route::put('/useradmin/{id}', [UserAdminController::class, 'update'])->name('useradmin.update');
+Route::delete('/useradmin/{id}', [UserAdminController::class, 'destroy'])->name('useradmin.destroy');
+
+Route::resource('useradmin', UserAdminController::class);
+
+Route::middleware(['auth'])->group(function () {
+    Route::middleware('admin.only')->group(function () {
+        Route::get('/useradmin/create', [UserAdminController::class, 'create'])->name('useradmin.create');
+        Route::post('/useradmin/store', [UserAdminController::class, 'store'])->name('useradmin.store');
+    });
+});
+

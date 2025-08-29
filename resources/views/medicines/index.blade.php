@@ -8,120 +8,127 @@
 </head>
 <body class="bg-gray-100">
 
+<div class="flex min-h-screen">
     <!-- Sidebar -->
-    <div class="flex h-screen">
     <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
-            <div class="p-6">
-                <h1 class="text-2xl font-bold">Health Management System</h1>
-                <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
-            </div>
-            <nav class="flex-grow">
-                <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
-                <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 bg-red-600">Medicine Inventory</a>
-                <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
-                
-            </nav>
-            <footer class="p-4">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
-                        Logout
-                    </button>
-                </form>
-            </footer>
-        </aside>
+        <div class="p-6">
+            <h1 class="text-2xl font-bold">Health Management System</h1>
+            <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
+        </div>
+        <nav class="flex-grow">
+            <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
+            <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
+            <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
 
-        <!-- Main Content -->
-        <main class="flex-grow p-6">
-            <header class="mb-6">
-                <h2 class="text-3xl font-bold text-gray-800">Medicine Inventory</h2>
-                <p class="text-gray-600">Manage the stock and details of medicines.</p>
-            </header>
+            @if(Auth::check() && Auth::user()->usertype === 'admin')
+                <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
+            @endif
+        </nav>
+        <footer class="p-4">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
+                    Logout
+                </button>
+            </form>
+        </footer>
+    </aside>
 
-            
-            <!-- Medicine Inventory Table -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <!-- Main Content -->
+    <main class="flex-1 p-6">
+        <header class="mb-6">
+            <h2 class="text-3xl font-bold text-gray-800">Medicine Inventory</h2>
+            <p class="text-gray-600">Manage the stock and details of medicines.</p>
+
+             <!-- Current Purok Badge -->
+    @if(Auth::check())
+        <div class="inline-block mt-3 px-4 py-2 rounded-full 
+                    bg-red-100 text-red-700 font-semibold shadow-sm">
+            @if(Auth::user()->usertype === 'admin')
+                Viewing: <span class="text-red-800">adminpurok</span>
+            @elseif(Auth::user()->usertype === 'useradmin')
+                Viewing: <span class="text-red-800">{{ Auth::user()->purok }}</span>
+            @endif
+        </div>
+    @endif
+        </header>
+
+        <!-- Medicine Inventory Table -->
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
-    <div class="flex items-center justify-between mb-4">
-        <!-- Add Medicine Button -->
-        <a href="{{ route('medicines.create') }}" class="px-4 py-2 bg-red-500 text-white rounded">Add Medicine</a> 
-        
-            <!-- Search Bar -->
-            <form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
-        <input type="text" name="search" value="{{ request('search') }}" 
-            placeholder="Search medicines..." 
-            class="px-4 py-2 border rounded-l w-64" id="searchInput">
-        <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">Search</button>
-    </form>
-    </div>
+                <div class="flex items-center justify-between mb-4">
+                    <!-- Add Medicine Button -->
+                    <a href="{{ route('medicines.create') }}" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Add Medicine</a> 
                     
-
-                    @if(session('success'))
-                        <div class="mb-4 text-green-500">{{ session('success') }}</div>
-                    @endif
-
-                    @if(session('error'))
-                        <div class="mb-4 text-red-500">{{ session('error') }}</div>
-                    @endif
-
-                    <table class="min-w-full bg-white border border-gray-200">
-    <thead>
-        <tr class="text-left bg-gray-100">
-            <th class="px-4 py-2">Medicine Name</th>
-            <th class="px-4 py-2">Details</th>
-            <th class="px-4 py-2">Stock</th>
-            <th class="px-4 py-2">Expiration Date</th>
-            <th class="px-4 py-2">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($medicines as $medicine)
-        <tr class="border-b">
-            <td class="px-4 py-2">{{ $medicine->name }}</td>
-            <td class="px-4 py-2">{{ $medicine->details }}</td>
-            <td class="px-4 py-2">{{ $medicine->stock }}</td>
-            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($medicine->expiration)->format('F Y') }}</td>
-            <td class="px-4 py-2">
-                <button type="button" onclick="openReceiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Receive</button>
-                <button type="button" onclick="openGiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Give</button>
-                <button 
-    type="button" 
-    onclick="openEditModal(
-        '{{ $medicine->id }}', 
-        '{{ $medicine->name }}', 
-        '{{ $medicine->details }}', 
-        '{{ $medicine->stock }}', 
-        '{{ \Carbon\Carbon::parse($medicine->expiration)->format('Y-m-d') }}'  // Proper date format for the input field
-    )" 
-    class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-    Edit
-</button>
-                <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
-                </form>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
-
-<!-- Pagination Controls -->
-<div class="mt-4">
-{{ $medicines->appends(['search' => request('search')])->links() }}
-</div>
+                    <!-- Search Bar -->
+<form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
+    <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
+        placeholder="Search medicines..." 
+        class="px-4 py-2 border rounded-l w-64 bg-gray-100 focus:outline-none">
+    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">Search</button>
+</form>
 
                 </div>
+
+                @if(session('success'))
+                    <div class="mb-4 text-green-500">{{ session('success') }}</div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mb-4 text-red-500">{{ session('error') }}</div>
+                @endif
+
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr class="text-left bg-gray-100">
+                            <th class="px-4 py-2">Medicine Name</th>
+                            <th class="px-4 py-2">Details</th>
+                            <th class="px-4 py-2">Stock</th>
+                            <th class="px-4 py-2">Expiration Date</th>
+                            <th class="px-4 py-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($medicines as $medicine)
+                        <tr class="border-b">
+                            <td class="px-4 py-2">{{ $medicine->name }}</td>
+                            <td class="px-4 py-2">{{ $medicine->details }}</td>
+                            <td class="px-4 py-2">{{ $medicine->stock }}</td>
+                            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($medicine->expiration)->format('F Y') }}</td>
+                            <td class="px-4 py-2 flex flex-wrap gap-2">
+                                <button type="button" onclick="openReceiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Receive</button>
+                                <button type="button" onclick="openGiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Give</button>
+                                <button type="button" onclick="openEditModal('{{ $medicine->id }}','{{ $medicine->name }}','{{ $medicine->details }}','{{ $medicine->stock }}','{{ \Carbon\Carbon::parse($medicine->expiration)->format('Y-m-d') }}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Edit</button>
+                                <form action="{{ route('medicines.destroy', $medicine) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-6 text-gray-500">🚫 No medicines found.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
+                <!-- Pagination Controls -->
+                <div class="mt-4">
+                    {{ $medicines->appends(['search' => request('search')])->links() }}
+                </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
+</div>
+
 
     <!-- Receive Modal -->
 <div id="receiveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
     <div class="bg-white p-6 rounded-lg w-1/3">
         <h3 class="text-xl font-bold mb-4">Receive Medicine</h3>
-        <form id="receiveForm" action="{{ route('medicines.receive', $medicine) }}" method="POST">
+        <form id="receiveForm" method="POST">
             @csrf
             <input type="hidden" name="medicine_id" id="receiveMedicineId">
             <div class="mb-4">
@@ -156,7 +163,7 @@
 <div id="giveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
     <div class="bg-white p-6 rounded-lg w-1/3">
         <h3 class="text-xl font-bold mb-4">Give Medicine</h3>
-        <form id="giveForm" action="{{ route('medicines.give', $medicine) }}" method="POST">
+        <form id="giveForm" method="POST">
             @csrf
             <input type="hidden" name="medicine_id" id="giveMedicineId">
             
@@ -235,12 +242,12 @@ document.getElementById('searchInput').addEventListener('input', function() {
     let rows = document.querySelectorAll('table tbody tr');
 
     rows.forEach(row => {
-        let medicineName = row.querySelector('td:first-child').textContent.toLowerCase();
-        let medicineDetails = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        let medicineName = row.querySelector('td:first-child')?.textContent.toLowerCase() || "";
+        let medicineDetails = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || "";
         if (medicineName.includes(searchQuery) || medicineDetails.includes(searchQuery)) {
-            row.style.display = ''; // Show the row if the name or details match
+            row.style.display = ''; 
         } else {
-            row.style.display = 'none'; // Hide the row if it doesn't match
+            row.style.display = 'none'; 
         }
     });
 });
@@ -250,9 +257,8 @@ document.getElementById('searchInput').addEventListener('input', function() {
     document.getElementById('receiveMedicineId').value = medicineId;
     document.getElementById('receiveMedicineName').value = medicineName;
 
-    // Dynamically set the form action
     const form = document.getElementById('receiveForm');
-    form.action = `/medicines/${medicineId}/receive`;  // Adjust the route pattern as per your web.php
+    form.action = `/medicines/${medicineId}/receive`;  
 
     document.getElementById('receiveModal').classList.remove('hidden');
 }
@@ -265,9 +271,8 @@ document.getElementById('searchInput').addEventListener('input', function() {
     document.getElementById('giveMedicineId').value = medicineId;
     document.getElementById('giveMedicineName').value = medicineName;
 
-    // Dynamically set the form action
     const form = document.getElementById('giveForm');
-    form.action = `/medicines/${medicineId}/give`;  // Adjust the route pattern as per your web.php
+    form.action = `/medicines/${medicineId}/give`;  
 
     document.getElementById('giveModal').classList.remove('hidden');
 }
@@ -299,4 +304,3 @@ document.getElementById('searchInput').addEventListener('input', function() {
 
 </body>
 </html>
-

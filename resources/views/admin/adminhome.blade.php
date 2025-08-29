@@ -13,40 +13,66 @@
             background: white;
             color: black;
         }
+        /* 👇 Make textboxes slightly gray */
+        input[type="text"], input[type="email"], input[type="password"], select, textarea {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            border: 1px solid #d1d5db; /* Tailwind gray-300 */
+            padding: 0.5rem;
+            border-radius: 0.375rem; /* rounded-md */
+            width: 100%;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ef4444; /* red-500 */
+            box-shadow: 0 0 0 2px #fecaca; /* red-200 */
+        }
     </style>
 </head>
 <body class="flex min-h-screen">
 
     <!-- Sidebar -->
-    <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold">Health Management System</h1>
-            <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
-        </div>
-        <nav class="flex-grow">
-            <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
-            <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
-            <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
+<aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
+    <div class="p-6">
+        <h1 class="text-2xl font-bold">Health Management System</h1>
+        <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
+    </div>
+    <nav class="flex-grow">
+        <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
+        <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
+        <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
+
+        @if(Auth::check() && Auth::user()->usertype === 'admin')
             <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
-        </nav>
-        <footer class="p-4">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
-                    Logout
-                </button>
-            </form>
-        </footer>
-    </aside>
+        @endif
+    </nav>
+    <footer class="p-4">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
+                Logout
+            </button>
+        </form>
+    </footer>
+</aside>
 
     <!-- Main Content -->
     <main class="flex-grow p-6">
         <header class="mb-6">
             <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
             <p class="text-gray-600">Welcome to the Health Management System</p>
+
+            <!-- 👇 Welcome Message -->
+            @if(Auth::check())
+                <div class="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
+                    <p class="font-semibold">Welcome back, {{ Auth::user()->name }}!</p>
+                    @if(Auth::user()->purok)
+                        <p>You are managing <span class="font-bold">{{ Auth::user()->purok }}</span>.</p>
+                    @endif
+                </div>
+            @endif
         </header>
 
-        <!-- Updated Medicine Inventory Section -->
+        <!-- Medicine Inventory Section -->
         <section class="bg-white shadow rounded-lg p-6 mb-6">
             <h3 class="text-xl font-semibold mb-4 text-gray-800">Medicine Inventory Overview</h3>
 
@@ -106,7 +132,6 @@
                 </table>
             </div>
         </section>
-
     </main>
 </body>
 </html>

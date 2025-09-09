@@ -9,10 +9,13 @@ use App\Models\Beneficiary;
 use App\Models\Pregnant;
 use App\Models\Infant;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-   public function index()
+ 
+
+public function index()
 {
     if (Auth::id()) {
         $usertype = Auth()->user()->usertype;
@@ -21,20 +24,35 @@ class HomeController extends Controller
             return view('dashboard');
         } elseif ($usertype == 'admin' || $usertype == 'useradmin') {
             
-            // Fetch medicine data depending on role
+            // ✅ Fetch medicine data depending on role
             if ($usertype == 'admin') {
-                $medicines = Medicine::select('name', 'stock', 'purok')->get();
+                $medicines = Medicine::select(
+                        DB::raw('MIN(id) as id'),
+                        'name',
+                        'purok',
+                        DB::raw('SUM(stock) as stock')
+                    )
+                    ->groupBy('name', 'purok')
+                    ->orderBy('name', 'asc')
+                    ->get();
             } elseif ($usertype == 'useradmin') {
                 $medicines = Medicine::where('purok', Auth::user()->purok)
-                                     ->select('name', 'stock', 'purok')
-                                     ->get();
+                    ->select(
+                        DB::raw('MIN(id) as id'),
+                        'name',
+                        'purok',
+                        DB::raw('SUM(stock) as stock')
+                    )
+                    ->groupBy('name', 'purok')
+                    ->orderBy('name', 'asc')
+                    ->get();
             }
 
-            // Fetch pregnant statistics
+            // ✅ Pregnant statistics
             $pregnantBelow18 = Pregnant::where('prgage', '<', 18)->count();
             $pregnantAbove18 = Pregnant::where('prgage', '>=', 18)->count();
 
-            // Fetch infant gender statistics
+            // ✅ Infant gender statistics
             $infantMale = Infant::where('child_gender', 'Male')->count();
             $infantFemale = Infant::where('child_gender', 'Female')->count();
 
@@ -46,7 +64,7 @@ class HomeController extends Controller
                 'infantFemale'
             ));
         } else {
-            // For normal users
+            // ✅ Normal users
             $user = Auth::user();
             switch ($user->beneficiary_type) {
                 case 'pregnant':
@@ -61,6 +79,7 @@ class HomeController extends Controller
         }
     }
 }
+
 
 
 

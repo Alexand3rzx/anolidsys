@@ -16,7 +16,7 @@
             <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
         </div>
         <nav class="flex-grow">
-            <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
+            <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
             <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
             <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
 
@@ -53,22 +53,48 @@
     @endif
         </header>
 
-        <!-- Medicine Inventory Table -->
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 text-gray-900">
-                <div class="flex items-center justify-between mb-4">
-                    <!-- Add Medicine Button -->
-                    <a href="{{ route('medicines.create') }}" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Add Medicine</a> 
-                    
-                    <!-- Search Bar -->
-<form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
-    <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
-        placeholder="Search medicines..." 
-        class="px-4 py-2 border rounded-l w-64 bg-gray-100 focus:outline-none">
-    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">Search</button>
-</form>
+      <!-- Medicine Inventory Table -->
+<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <div class="p-6 text-gray-900">
+        <div class="flex items-center justify-between mb-4">
+            
+            <!-- Role-based Button -->
+       @if(Auth::check())
+    @if(Auth::user()->usertype === 'admin')
+        <div class="flex gap-3">
+            <!-- Admin: Add Medicine -->
+            <a href="{{ route('medicines.create') }}" 
+               class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+               Add Medicine
+            </a>
 
-                </div>
+            <!-- Admin: Show Requests -->
+            <a href="{{ route('medicine-requests.admin') }}" 
+               class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+               Show Requests
+            </a>
+        </div>
+    @elseif(Auth::user()->usertype === 'useradmin')
+        <!-- Useradmin: Request Medicines (opens request page) -->
+        <a href="{{ route('medicines.request') }}"
+           class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+           Request Medicines
+        </a>
+    @endif
+@endif
+
+
+            <!-- Search Bar -->
+            <form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
+                <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
+                    placeholder="Search medicines..." 
+                    class="px-4 py-2 border rounded-l w-64 bg-gray-100 focus:outline-none">
+                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">
+                    Search
+                </button>
+            </form>
+        </div>
+
 
                 @if(session('success'))
                     <div class="mb-4 text-green-500">{{ session('success') }}</div>
@@ -235,6 +261,74 @@
     </div>
 </div>
 
+<!-- Request Medicine Modal -->
+<div id="requestMedicineModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl p-6">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center border-b pb-4 mb-4">
+            <h2 class="text-2xl font-bold text-gray-800">Request Medicines</h2>
+            <button onclick="closeRequestMedicineModal()" class="text-gray-400 hover:text-red-500">✕</button>
+        </div>
+
+        <!-- Search -->
+        <form id="requestSearchForm" method="GET" action="{{ route('medicines.index') }}" class="mb-4 flex">
+            <input type="text" name="search" value="{{ request('search') }}"
+                   placeholder="Search available medicines..."
+                   class="px-4 py-2 border rounded-l-lg w-72 bg-gray-100 focus:outline-none">
+            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r-lg hover:bg-red-600">
+                Search
+            </button>
+        </form>
+
+        <!-- Medicines Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full border border-gray-200 rounded-lg">
+                <thead class="bg-red-500 text-white">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Medicine</th>
+                        <th class="px-4 py-2 text-left">Details</th>
+                        <th class="px-4 py-2 text-center">Stock</th>
+                        <th class="px-4 py-2 text-center">Request Qty</th>
+                        <th class="px-4 py-2 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @forelse($adminMedicines as $medicine)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-semibold">{{ $medicine->name }}</td>
+                            <td class="px-4 py-3">{{ $medicine->details }}</td>
+                            <td class="px-4 py-3 text-center">{{ $medicine->stock }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <input type="number" min="1" max="{{ $medicine->stock }}" 
+                                       class="w-20 border rounded p-1 text-center"
+                                       id="qty-{{ $medicine->id }}">
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <button onclick="submitRequest({{ $medicine->id }})"
+                                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                    Request
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-4 py-3 text-center text-gray-500">
+                                No medicines available
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4">
+            {{ $medicines->links() }}
+        </div>
+    </div>
+</div>
+
 <script>
 
 document.getElementById('searchInput').addEventListener('input', function() {
@@ -298,6 +392,58 @@ document.getElementById('searchInput').addEventListener('input', function() {
     function closeEditModal() {
         document.getElementById('editModal').classList.add('hidden');
     }
+
+      // Open modal
+    function openRequestMedicineModal() {
+        document.getElementById('requestMedicineModal').classList.remove('hidden');
+    }
+
+    // Close modal
+    function closeRequestMedicineModal() {
+        document.getElementById('requestMedicineModal').classList.add('hidden');
+    }
+
+    // Optional: Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('requestMedicineModal');
+        if (e.target === modal) {
+            closeRequestMedicineModal();
+        }
+    });
+
+    function submitRequest(medicineId) {
+    const qty = document.getElementById(`qty-${medicineId}`).value;
+    if (!qty || qty <= 0) {
+        alert("Please enter a valid quantity.");
+        return;
+    }
+
+    fetch("{{ route('medicine-requests.store') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({
+            medicine_id: medicineId,
+            quantity: qty
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert("✅ Request submitted successfully!");
+            location.reload();
+        } else {
+            alert("❌ " + data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("⚠️ Something went wrong.");
+    });
+}
+
 </script>
 
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\PregnantController;
 use App\Http\Controllers\InfantController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\UserAdminController;
+use App\Http\Controllers\MedicineRequestController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -36,24 +37,50 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-//meds
+Route::get('/medicine-requests/admin', [MedicineRequestController::class, 'adminIndex'])
+    ->name('medicine-requests.admin')
+    ->middleware('auth');
+
+    Route::get('/medicines/requests-admin', [MedicineController::class, 'requestsAdmin'])->name('medicine.requests.admin');
+
+
+// meds
 Route::middleware(['auth'])->group(function () {
+
+    // Medicine request routes
+    Route::post('/medicine-requests', [MedicineRequestController::class, 'store'])
+        ->name('medicine-requests.store');
+    Route::post('/medicine-requests/{id}/approve', [MedicineRequestController::class, 'approve'])
+        ->name('medicine-requests.approve');
+    Route::post('/medicine-requests/{id}/reject', [MedicineRequestController::class, 'reject'])
+        ->name('medicine-requests.reject');
+    Route::get('/medicine-requests/list', [MedicineRequestController::class, 'list'])
+        ->name('medicine-requests.list');
+
+    Route::get('/medicines/request', [MedicineController::class, 'request'])
+        ->name('medicines.request');
+    Route::get('/medicines/requests-admin', [MedicineController::class, 'requestsAdmin'])
+        ->name('medicine.requests.admin');
+    Route::get('/medicine-requests/admin', [MedicineRequestController::class, 'adminIndex'])
+        ->name('medicine-requests.admin');
+
+    // Medicine resource routes
     Route::resource('medicines', MedicineController::class);
 
-    
-    // Receive, Give, Edit, and Delete actions
-    //Route::post('medicines/{medicine}/receive', [MedicineController::class, 'receive'])->name('medicines.receive');
-    //Route::post('medicines/{medicine}/give', [MedicineController::class, 'give'])->name('medicines.give');
-
-    Route::post('/medicines/{medicine}/receive', [MedicineController::class, 'receive'])->name('medicines.receive');
-Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])->name('medicines.give');
-    Route::get('medicines/{medicine}/edit', [MedicineController::class, 'edit'])->name('medicines.edit');
-    Route::delete('medicines/{medicine}', [MedicineController::class, 'destroy'])->name('medicines.destroy');
-    Route::put('medicines/{medicine}', [MedicineController::class, 'update'])->name('medicines.update');
-    Route::get('/medicines', [MedicineController::class, 'index'])->name('medicines.index');
-
-
+    Route::post('/medicines/{medicine}/receive', [MedicineController::class, 'receive'])
+        ->name('medicines.receive');
+    Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])
+        ->name('medicines.give');
+    Route::get('medicines/{medicine}/edit', [MedicineController::class, 'edit'])
+        ->name('medicines.edit');
+    Route::delete('medicines/{medicine}', [MedicineController::class, 'destroy'])
+        ->name('medicines.destroy');
+    Route::put('medicines/{medicine}', [MedicineController::class, 'update'])
+        ->name('medicines.update');
+    Route::get('/medicines', [MedicineController::class, 'index'])
+        ->name('medicines.index');
 });
+
 
 //beneficiaries
 //Route::resource('beneficiaries', BeneficiaryController::class);
@@ -120,4 +147,26 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/useradmin/store', [UserAdminController::class, 'store'])->name('useradmin.store');
     });
 });
+
+// Useradmin creates a medicine request
+Route::post('/medicine-requests', [MedicineRequestController::class, 'store'])
+    ->name('medicine-requests.store');
+
+// Admin approves a request
+Route::post('/medicine-requests/{id}/approve', [MedicineRequestController::class, 'approve'])
+    ->name('medicine-requests.approve');
+
+// Admin rejects a request
+Route::post('/medicine-requests/{id}/reject', [MedicineRequestController::class, 'reject'])
+    ->name('medicine-requests.reject');
+
+Route::get('/medicine-requests/list', [MedicineRequestController::class, 'list'])
+    ->name('medicine-requests.list');    
+
+Route::get('/medicines/request', [MedicineRequestController::class, 'requestPage'])
+    ->name('medicines.request');
+
+Route::get('/medicines/request', [MedicineController::class, 'request'])
+    ->name('medicines.request');
+
 

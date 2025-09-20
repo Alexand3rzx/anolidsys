@@ -58,7 +58,7 @@
         </div>
         <h2>Welcome, User</h2>
         <a href="/dashboard">Dashboard</a>
-        <a href="#" class="active">Medicine Request</a>
+        <a href="#" class="active">Medicine Requests</a>
 
         <form action="{{ route('logout') }}" method="POST" style="margin-top: 20px;">
             @csrf

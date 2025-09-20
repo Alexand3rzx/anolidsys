@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Medicine;
 use App\Models\MedicineRequest;
+use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +14,9 @@ class MedicineRequestController extends Controller
     /**
      * Store a new medicine request (Useradmin side).
      */
- public function store(Request $request)
+
+
+public function store(Request $request)
 {
     $request->validate([
         'medicine_id' => 'required|exists:medicines,id',
@@ -22,6 +25,9 @@ class MedicineRequestController extends Controller
 
     $userId = auth()->id();
     $medicineId = $request->medicine_id;
+
+    // fetch medicine name
+    $medicineName = \App\Models\Medicine::find($medicineId)->name ?? 'Unknown Medicine';
 
     // get the latest request for this user & medicine
     $existingRequest = MedicineRequest::where('user_id', $userId)
@@ -34,6 +40,12 @@ class MedicineRequestController extends Controller
         $existingRequest->quantity += $request->quantity;
         $existingRequest->save();
 
+        // ✅ log/update notification
+        Notification::create([
+            'user_id' => $userId,
+            'message' => auth()->user()->purok . " updated request for {$medicineName}",
+        ]);
+
         return back()->with('success', 'Request updated successfully (added to existing pending).');
     } else {
         // otherwise, create a new pending request
@@ -44,9 +56,16 @@ class MedicineRequestController extends Controller
             'status' => 'pending',
         ]);
 
+        // ✅ new notification
+        Notification::create([
+            'user_id' => $userId,
+            'message' => auth()->user()->purok . " requested medicine: {$medicineName}",
+        ]);
+
         return back()->with('success', 'New request created successfully.');
     }
 }
+
 
 
 
@@ -144,12 +163,16 @@ public function create(Request $request)
 
 public function adminIndex()
 {
+    // ✅ Mark all unread notifications as read
+    \App\Models\Notification::where('is_read', false)->update(['is_read' => true]);
+
     $requests = MedicineRequest::with('useradmin', 'medicine')
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
     return view('medicines.requests_admin', compact('requests'));
 }
+
 
 
 }

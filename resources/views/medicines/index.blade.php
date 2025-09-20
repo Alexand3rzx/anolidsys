@@ -40,66 +40,91 @@
             <h2 class="text-3xl font-bold text-gray-800">Medicine Inventory</h2>
             <p class="text-gray-600">Manage the stock and details of medicines.</p>
 
-             <!-- Current Purok Badge -->
-    @if(Auth::check())
-        <div class="inline-block mt-3 px-4 py-2 rounded-full 
-                    bg-red-100 text-red-700 font-semibold shadow-sm">
-            @if(Auth::user()->usertype === 'admin')
-                Viewing: <span class="text-red-800">adminpurok</span>
-            @elseif(Auth::user()->usertype === 'useradmin')
-                Viewing: <span class="text-red-800">{{ Auth::user()->purok }}</span>
+            <!-- Current Purok Badge -->
+            @if(Auth::check())
+                <div class="inline-block mt-3 px-4 py-2 rounded-full 
+                            bg-red-100 text-red-700 font-semibold shadow-sm">
+                    @if(Auth::user()->usertype === 'admin')
+                        Viewing: <span class="text-red-800">adminpurok</span>
+                    @elseif(Auth::user()->usertype === 'useradmin')
+                        Viewing: <span class="text-red-800">{{ Auth::user()->purok }}</span>
+                    @endif
+                </div>
             @endif
-        </div>
-    @endif
         </header>
 
-      <!-- Medicine Inventory Table -->
-<div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-    <div class="p-6 text-gray-900">
-        <div class="flex items-center justify-between mb-4">
-            
-            <!-- Role-based Button -->
-       @if(Auth::check())
-    @if(Auth::user()->usertype === 'admin')
-        <div class="flex gap-3">
-            <!-- Admin: Add Medicine -->
-            <a href="{{ route('medicines.create') }}" 
-               class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-               Add Medicine
-            </a>
+        <!-- Medicine Inventory Table -->
+        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="p-6 text-gray-900">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+                    
+                    <!-- Role-based Button -->
+                    @if(Auth::check())
+                        @if(Auth::user()->usertype === 'admin')
+                            <div class="flex gap-3">
+                                <a href="{{ route('medicines.create') }}" 
+                                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                                    Add Medicine
+                                </a>
 
-            <!-- Admin: Show Requests -->
-            <a href="{{ route('medicine-requests.admin') }}" 
-               class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-               Show Requests
-            </a>
-        </div>
-    @elseif(Auth::user()->usertype === 'useradmin')
-        <!-- Useradmin: Request Medicines (opens request page) -->
-        <a href="{{ route('medicines.request') }}"
-           class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
-           Request Medicines
+                                <a href="{{ route('medicine-requests.admin') }}" 
+                                class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                    Show Requests
+                                </a>
+                            </div>
+                        @elseif(Auth::user()->usertype === 'useradmin')
+                            <a href="{{ route('medicines.request') }}"
+                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                                Request Medicines
+                            </a>
+                        @endif
+                    @endif
+
+                    <!-- Search + Filters -->
+<div class="flex flex-wrap gap-2 items-center">
+    <!-- Search Bar -->
+    <form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
+        <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
+            placeholder="Search medicines..." 
+            class="px-4 py-2 border rounded-l-lg w-64 bg-gray-100 focus:outline-none">
+        <button type="submit" 
+            class="px-4 py-2 bg-red-500 text-white rounded-r-lg hover:bg-red-600">
+            Search
+        </button>
+    </form>
+
+    <!-- 👇 Purok Filter (Admin only) -->
+    @if(Auth::check() && Auth::user()->usertype === 'admin')
+        <form method="GET" action="{{ route('medicines.index') }}">
+            <select name="purok" onchange="this.form.submit()"
+                class="px-3 py-2 border rounded-lg bg-gray-50 text-gray-700">
+                <option value="">All Puroks</option>
+                @foreach($puroks as $purok)
+                    <option value="{{ $purok }}" {{ request('purok') == $purok ? 'selected' : '' }}>
+                        {{ ucfirst($purok) }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+    @endif
+
+   
+
+    <!-- Reset Button -->
+    @if(request('search') || request('expiration_filter') || request('stock_filter') || request('purok'))
+        <a href="{{ route('medicines.index') }}" 
+        class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+            Reset
         </a>
     @endif
-@endif
+</div>
 
+                </div>
 
-            <!-- Search Bar -->
-            <form method="GET" action="{{ route('medicines.index') }}" class="flex" id="searchForm">
-                <input type="text" id="searchInput" name="search" value="{{ request('search') }}" 
-                    placeholder="Search medicines..." 
-                    class="px-4 py-2 border rounded-l w-64 bg-gray-100 focus:outline-none">
-                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-r hover:bg-red-600">
-                    Search
-                </button>
-            </form>
-        </div>
-
-
+                <!-- Alerts -->
                 @if(session('success'))
                     <div class="mb-4 text-green-500">{{ session('success') }}</div>
                 @endif
-
                 @if(session('error'))
                     <div class="mb-4 text-red-500">{{ session('error') }}</div>
                 @endif
@@ -116,11 +141,36 @@
                     </thead>
                     <tbody>
                         @forelse($medicines as $medicine)
-                        <tr class="border-b">
+                        <tr class="border-b hover:bg-gray-50">
                             <td class="px-4 py-2">{{ $medicine->name }}</td>
                             <td class="px-4 py-2">{{ $medicine->details }}</td>
-                            <td class="px-4 py-2">{{ $medicine->stock }}</td>
-                            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($medicine->expiration)->format('F Y') }}</td>
+                            <td class="px-4 py-2">
+                                @if($medicine->stock <= 0)
+                                    <span class="text-red-600 font-semibold">Out of Stock</span>
+                                @elseif($medicine->stock <= 10)
+                                    <span class="text-yellow-600 font-semibold">Low ({{ $medicine->stock }})</span>
+                                @else
+                                    <span class="text-green-600 font-semibold">{{ $medicine->stock }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                @if($medicine->expiration)
+                                    @php
+                                        $expDate = \Carbon\Carbon::parse($medicine->expiration);
+                                        $now = \Carbon\Carbon::now();
+                                        $diffMonths = $now->diffInMonths($expDate, false);
+                                    @endphp
+                                    @if($expDate->isPast())
+                                        <span class="text-red-600 font-semibold">Expired ({{ $expDate->format('M Y') }})</span>
+                                    @elseif($diffMonths <= 3)
+                                        <span class="text-yellow-600 font-semibold">Expiring Soon ({{ $expDate->format('M Y') }})</span>
+                                    @else
+                                        <span class="text-green-600">{{ $expDate->format('M Y') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-gray-500">N/A</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-2 flex flex-wrap gap-2">
                                 <button type="button" onclick="openReceiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Receive</button>
                                 <button type="button" onclick="openGiveModal('{{ $medicine->id }}', '{{ $medicine->name }}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Give</button>
@@ -142,7 +192,7 @@
 
                 <!-- Pagination Controls -->
                 <div class="mt-4">
-                    {{ $medicines->appends(['search' => request('search')])->links() }}
+                    {{ $medicines->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>

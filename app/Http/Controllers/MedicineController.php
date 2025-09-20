@@ -14,12 +14,16 @@ class MedicineController extends Controller
 public function index(Request $request)
 {
     $search = $request->input('search');
+    $filterPurok = $request->input('purok'); // only for admin
     $user = auth()->user();
 
     $query = Medicine::query();
 
     if ($user->usertype === 'admin') {
         // Admin sees all medicines
+        if ($filterPurok) {
+            $query->where('purok', $filterPurok);
+        }
     } elseif ($user->usertype === 'useradmin') {
         // Useradmin only sees medicines in their own purok
         $query->where('purok', $user->purok)
@@ -49,7 +53,7 @@ public function index(Request $request)
     // ✅ Grouped medicines
     $medicines = $query->orderBy('name', 'asc')
                        ->paginate(6)
-                       ->appends(['search' => $search]);
+                       ->appends($request->query());
 
     // ✅ Separate list of admin medicines for requests
     $adminMedicines = collect();
@@ -71,11 +75,18 @@ public function index(Request $request)
             })
             ->orderBy('name', 'asc')
             ->paginate(6)
-            ->appends(['search' => $search]);
+            ->appends($request->query());
     }
 
-    return view('medicines.index', compact('medicines', 'adminMedicines'));
+    // ✅ Get puroks for dropdown (admin only)
+    $puroks = collect();
+    if ($user->usertype === 'admin') {
+        $puroks = Medicine::select('purok')->distinct()->pluck('purok');
+    }
+
+    return view('medicines.index', compact('medicines', 'adminMedicines', 'puroks'));
 }
+
 
 
 

@@ -57,81 +57,154 @@
 
     <!-- Main Content -->
     <main class="flex-grow p-6">
-        <header class="mb-6">
-            <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
-            <p class="text-gray-600">Welcome to the Health Management System</p>
+        <header class="mb-6 flex items-center justify-between">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
+        <p class="text-gray-600">Welcome to the Health Management System</p>
+    </div>
 
-            <!-- 👇 Welcome Message -->
-            @if(Auth::check())
-                <div class="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-                    <p class="font-semibold">Welcome back, {{ Auth::user()->name }}!</p>
-                    @if(Auth::user()->purok)
-                        <p>You are managing <span class="font-bold">{{ Auth::user()->purok }}</span>.</p>
-                    @endif
-                </div>
-            @endif
-        </header>
+   <!-- ✅ Notification Bell (Admins Only) -->
+@if(Auth::check() && Auth::user()->usertype === 'admin')
+<div class="relative">
+    <button class="relative focus:outline-none" id="notifDropdown" onclick="toggleDropdown()">
+        <span class="sr-only">View notifications</span>
+        <!-- Bell Icon -->
+        <svg class="w-7 h-7 text-gray-700 hover:text-red-600 transition" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a2 2 0 002-2H8a2 2 0 002 2z"/>
+        </svg>
 
-        <!-- Medicine Inventory Section -->
-        <section class="bg-white shadow rounded-lg p-6 mb-6">
-            <h3 class="text-xl font-semibold mb-4 text-gray-800">Medicine Inventory Overview</h3>
+        <!-- 🔴 Badge -->
+        @if($notifications->where('is_read', false)->count() > 0)
+            <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 shadow">
+                {{ $notifications->where('is_read', false)->count() }}
+            </span>
+        @endif
+    </button>
 
-            @php
-                $totalMedicines = $medicines->count();
-                $lowStockCount = $medicines->where('stock', '<', 20)->count();
-                $outOfStockCount = $medicines->where('stock', '<=', 0)->count();
-                $expiringSoonCount = 0; // Add logic if expiration dates exist
-            @endphp
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-red-100 p-4 rounded shadow">
-                    <p class="text-gray-600">Total Medicines</p>
-                    <h2 class="text-2xl font-bold text-red-800">{{ $totalMedicines }}</h2>
-                </div>
-                <div class="bg-yellow-100 p-4 rounded shadow">
-                    <p class="text-gray-600">Low Stock Items (&lt; 20)</p>
-                    <h2 class="text-2xl font-bold text-yellow-700">{{ $lowStockCount }}</h2>
-                </div>
-                <div class="bg-orange-100 p-4 rounded shadow">
-                    <p class="text-gray-600">Expiring Soon</p>
-                    <h2 class="text-2xl font-bold text-orange-700">{{ $expiringSoonCount }}</h2>
-                </div>
-                <div class="bg-green-100 p-4 rounded shadow">
-                    <p class="text-gray-600">Out of Stock</p>
-                    <h2 class="text-2xl font-bold text-green-800">{{ $outOfStockCount }}</h2>
-                </div>
+    <!-- 🔽 Dropdown -->
+    <div id="notifMenu" 
+         class="hidden absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-xl max-h-96 overflow-y-auto z-50">
+        <div class="px-4 py-2 font-semibold text-gray-700 border-b bg-gray-50">
+            Notifications
+        </div>
+        @forelse($notifications as $notif)
+            <a href="{{ url('medicine-requests/admin') }}" 
+               class="block px-4 py-3 text-sm border-b last:border-0 
+                      {{ $notif->is_read ? 'text-gray-600' : 'font-semibold text-gray-800' }} 
+                      hover:bg-red-50 transition">
+                <div>{{ $notif->message }}</div>
+                <small class="text-gray-500">{{ $notif->created_at->diffForHumans() }}</small>
+            </a>
+        @empty
+            <div class="px-4 py-4 text-center text-gray-500 text-sm">
+                🎉 No new notifications
             </div>
+        @endforelse
+    </div>
+</div>
+@endif
+</header>
 
-            <div class="mt-6">
-                <h4 class="text-lg font-semibold text-gray-700 mb-2">Medicine Stock Table</h4>
-                <table class="w-full border border-gray-200 text-sm">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th class="text-left p-2 border">Medicine</th>
-                            <th class="text-left p-2 border">Stock Left</th>
-                            <th class="text-left p-2 border">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($medicines as $medicine)
-                            <tr class="border-t">
-                                <td class="p-2 border">{{ $medicine->name }}</td>
-                                <td class="p-2 border">{{ $medicine->stock }}</td>
-                                <td class="p-2 border">
-                                    @if ($medicine->stock <= 0)
-                                        <span class="text-red-600 font-semibold">Out of Stock</span>
-                                    @elseif ($medicine->stock < 20)
-                                        <span class="text-yellow-600 font-semibold">Low Stock</span>
-                                    @else
-                                        <span class="text-green-600 font-semibold">Available</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </section>
+       <!-- Medicine Inventory Section -->
+<section class="bg-white shadow rounded-lg p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            💊 Medicine Inventory
+        </h3>
+
+        <!-- ✅ Purok Filter (Admins Only) -->
+        @if(Auth::check() && Auth::user()->usertype === 'admin')
+            <form method="GET" action="{{ route('home') }}" class="flex items-center gap-2 mt-4 md:mt-0">
+                <label for="purok" class="text-gray-700 font-medium">Filter by Purok:</label>
+                <select name="purok" id="purok" onchange="this.form.submit()" 
+                        class="border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 shadow-sm focus:border-red-500 focus:ring focus:ring-red-200">
+                    <option value="">-- All Puroks --</option>
+                    @foreach($puroks as $purok)
+                        <option value="{{ $purok }}" {{ $selectedPurok == $purok ? 'selected' : '' }}>
+                            {{ ucfirst($purok) }}
+                        </option>
+                    @endforeach
+                </select>
+            </form>
+        @endif
+    </div>
+
+   @php
+    use Carbon\Carbon;
+
+    $totalMedicines = $medicines->count();
+    $lowStockCount = $medicines->where('stock', '<', 20)->count();
+    $outOfStockCount = $medicines->where('stock', '<=', 0)->count();
+
+    // ✅ Medicines expiring within 30 days (but not expired yet)
+    $expiringSoonCount = $medicines->filter(function($med) {
+        return $med->expiration 
+            && \Carbon\Carbon::parse($medicines->expiration)->isBetween(
+                \Carbon\Carbon::now(),
+                \Carbon\Carbon::now()->addDays(30)
+            );
+    })->count();
+@endphp
+
+    <!-- ✅ Medicine Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div class="p-5 bg-gradient-to-r from-red-100 to-red-200 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-gray-700">Total Medicines</p>
+            <h2 class="text-3xl font-extrabold text-red-700">{{ $totalMedicines }}</h2>
+        </div>
+        <div class="p-5 bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-gray-700">Low Stock (&lt; 20)</p>
+            <h2 class="text-3xl font-extrabold text-yellow-700">{{ $lowStockCount }}</h2>
+        </div>
+        <div class="p-5 bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-gray-700">Expiring Soon</p>
+            <h2 class="text-3xl font-extrabold text-orange-700">{{ $expiringSoonCount }}</h2>
+        </div>
+        <div class="p-5 bg-gradient-to-r from-green-100 to-green-200 rounded-xl shadow hover:shadow-lg transition">
+            <p class="text-gray-700">Out of Stock</p>
+            <h2 class="text-3xl font-extrabold text-green-700">{{ $outOfStockCount }}</h2>
+        </div>
+    </div>
+
+    <!-- ✅ Medicine Table -->
+<div class="overflow-x-auto">
+    <table class="w-full border border-gray-200 text-sm rounded-lg overflow-hidden shadow">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+            <tr>
+                <th class="text-left px-4 py-3 border">Medicine</th>
+                <th class="text-left px-4 py-3 border">Purok</th> <!-- 👈 Added column -->
+                <th class="text-left px-4 py-3 border">Stock Left</th>
+                <th class="text-left px-4 py-3 border">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            @foreach ($medicines as $medicine)
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 border font-medium text-gray-800">{{ $medicine->name }}</td>
+                    <td class="px-4 py-3 border">{{ ucfirst($medicine->purok) }}</td> <!-- 👈 Show purok -->
+                    <td class="px-4 py-3 border">{{ $medicine->stock }}</td>
+                    <td class="px-4 py-3 border">
+                        @if ($medicine->stock <= 0)
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Out of Stock</span>
+                        @elseif ($medicine->stock < 20)
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Low Stock</span>
+                        @else
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Available</span>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+</section>
+
     </main>
 </body>
+
+<script>
+function toggleDropdown() {
+    document.getElementById('notifMenu').classList.toggle('hidden');
+}
+</script>
 </html>

@@ -1,11 +1,12 @@
 <!-- resources/views/medicines/requests_admin.blade.php -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="{ openModal: false, actionUrl: '', actionText: '' }" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medicine Requests - Health Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <body class="bg-gray-100">
 
@@ -82,60 +83,59 @@
 
                 <!-- Table -->
                 <table class="min-w-full bg-white border border-gray-200">
-    <thead>
-        <tr class="text-left bg-gray-100">
-            <th class="px-4 py-2">#</th>
-            <th class="px-4 py-2">Medicine</th>
-            <th class="px-4 py-2">Quantity</th>
-            <th class="px-4 py-2">Requested By</th>
-            <th class="px-4 py-2">Purok</th> <!-- Added -->
-            <th class="px-4 py-2">Status</th>
-            <th class="px-4 py-2">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($requests as $req)
-        <tr class="border-b hover:bg-gray-50">
-            <td class="px-4 py-2">{{ $req->id }}</td>
-            <td class="px-4 py-2">{{ $req->medicine->name }}</td>
-            <td class="px-4 py-2">{{ $req->quantity }}</td>
-            <td class="px-4 py-2">{{ $req->useradmin->name ?? 'Unknown' }}</td>
-            <td class="px-4 py-2">{{ $req->useradmin->purok ?? 'N/A' }}</td> <!-- Added -->
-            <td class="px-4 py-2">
-                @if($req->status === 'pending')
-                    <span class="px-2 py-1 text-sm rounded bg-yellow-100 text-yellow-700">Pending</span>
-                @elseif($req->status === 'approved')
-                    <span class="px-2 py-1 text-sm rounded bg-green-100 text-green-700">Approved</span>
-                @else
-                    <span class="px-2 py-1 text-sm rounded bg-red-100 text-red-700">Rejected</span>
-                @endif
-            </td>
-            <td class="px-4 py-2 space-x-2">
-                @if($req->status === 'pending')
-                    <form action="{{ route('medicine-requests.approve', $req->id) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">
-                            Approve
-                        </button>
-                    </form>
-                    <form action="{{ route('medicine-requests.reject', $req->id) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">
-                            Reject
-                        </button>
-                    </form>
-                @else
-                    <span class="text-gray-500 text-sm">No actions</span>
-                @endif
-            </td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="7" class="text-center py-6 text-gray-500">🚫 No medicine requests found.</td>
-        </tr>
-        @endforelse
-    </tbody>
-</table>
+                    <thead>
+                        <tr class="text-left bg-gray-100">
+                            <th class="px-4 py-2">#</th>
+                            <th class="px-4 py-2">Medicine</th>
+                            <th class="px-4 py-2">Quantity</th>
+                            <th class="px-4 py-2">Requested By</th>
+                            <th class="px-4 py-2">Purok</th>
+                            <th class="px-4 py-2">Status</th>
+                            <th class="px-4 py-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($requests as $req)
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-4 py-2">{{ $req->id }}</td>
+                            <td class="px-4 py-2">{{ $req->medicine->name }}</td>
+                            <td class="px-4 py-2">{{ $req->quantity }}</td>
+                            <td class="px-4 py-2">{{ $req->useradmin->name ?? 'Unknown' }}</td>
+                            <td class="px-4 py-2">{{ $req->useradmin->purok ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">
+                                @if($req->status === 'pending')
+                                    <span class="px-2 py-1 text-sm rounded bg-yellow-100 text-yellow-700">Pending</span>
+                                @elseif($req->status === 'approved')
+                                    <span class="px-2 py-1 text-sm rounded bg-green-100 text-green-700">Approved</span>
+                                @else
+                                    <span class="px-2 py-1 text-sm rounded bg-red-100 text-red-700">Rejected</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2 space-x-2">
+                                @if($req->status === 'pending')
+                                    <button type="button"
+                                            @click="openModal = true; actionUrl = '{{ route('medicine-requests.approve', $req->id) }}'; actionText = 'Approve';"
+                                            class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">
+                                        Approve
+                                    </button>
+                                    <button type="button"
+                                            @click="openModal = true; actionUrl = '{{ route('medicine-requests.reject', $req->id) }}'; actionText = 'Reject';"
+                                            class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition">
+                                        Reject
+                                    </button>
+                                @else
+                                    <span class="text-gray-500 text-sm">No actions</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-6 text-gray-500">🚫 No medicine requests found.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
                 <!-- Pagination -->
                 <div class="mt-4">
                     {{ $requests->links() }}
@@ -143,6 +143,26 @@
             </div>
         </div>
     </main>
+</div>
+
+<!-- Confirmation Modal -->
+<div x-show="openModal"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     x-transition>
+    <div class="bg-white rounded-lg shadow-lg p-6 w-96">
+        <h3 class="text-lg font-bold text-gray-800">Confirm Action</h3>
+        <p class="mt-2 text-gray-600">Are you sure you want to <span x-text="actionText"></span> this request?</p>
+        <div class="mt-4 flex justify-end space-x-2">
+            <button type="button" @click="openModal = false"
+                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+            <form method="POST" :action="actionUrl">
+                @csrf
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        x-text="actionText"></button>
+            </form>
+        </div>
+    </div>
 </div>
 
 </body>

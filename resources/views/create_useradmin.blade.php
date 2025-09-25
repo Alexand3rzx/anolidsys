@@ -58,6 +58,7 @@
                     </div>
                 @endif
 
+                @if(Auth::check() && Auth::user()->usertype === 'admin')
                 <form action="{{ route('useradmin.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @csrf
 
@@ -73,30 +74,6 @@
                             class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm focus:border-red-500 focus:ring-red-500" required>
                     </div>
 
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-1">Password</label>
-                        <div class="relative">
-                            <input type="password" id="password" name="password" 
-                                class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm focus:border-red-500 focus:ring-red-500 pr-10" required>
-                            <button type="button" onclick="togglePassword('password', this)" 
-                                class="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-500">
-                                Show
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-700 font-medium mb-1">Confirm Password</label>
-                        <div class="relative">
-                            <input type="password" id="password_confirmation" name="password_confirmation" 
-                                class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm focus:border-red-500 focus:ring-red-500 pr-10" required>
-                            <button type="button" onclick="togglePassword('password_confirmation', this)" 
-                                class="absolute inset-y-0 right-0 px-3 flex items-center text-sm text-gray-500">
-                                Show
-                            </button>
-                        </div>
-                    </div>
-
                     <div class="md:col-span-2">
                         <label class="block text-gray-700 font-medium mb-1">Purok</label>
                         <select name="purok" 
@@ -107,6 +84,8 @@
                             <option value="purok3">Purok 3</option>
                             <option value="purok4">Purok 4</option>
                             <option value="purok5">Purok 5</option>
+                            <option value="purok6">Purok 6</option>
+                            <option value="purok7">Purok 7</option>
                         </select>
                     </div>
 
@@ -117,6 +96,9 @@
                         </button>
                     </div>
                 </form>
+                @else
+                    <p class="text-gray-600">Only administrators can create User Admin accounts.</p>
+                @endif
             </div>
 
             <!-- Manage User Admins Table -->
@@ -130,7 +112,9 @@
                                 <th class="px-6 py-3">Name</th>
                                 <th class="px-6 py-3">Email</th>
                                 <th class="px-6 py-3">Purok</th>
-                                <th class="px-6 py-3">Actions</th>
+                                @if(Auth::check() && Auth::user()->usertype === 'admin')
+                                    <th class="px-6 py-3">Actions</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -139,18 +123,20 @@
                                     <td class="px-6 py-3 font-medium text-gray-700">{{ $admin->name }}</td>
                                     <td class="px-6 py-3 text-gray-600">{{ $admin->email }}</td>
                                     <td class="px-6 py-3 capitalize text-gray-600">{{ $admin->purok }}</td>
+                                    @if(Auth::check() && Auth::user()->usertype === 'admin')
                                     <td class="px-6 py-3 flex space-x-2">
                                         <!-- Edit Modal Trigger -->
-                                        <button onclick="openEditModal({{ $admin->id }}, '{{ $admin->name }}', '{{ $admin->email }}', '{{ $admin->purok }}')" 
-                                            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                                            Edit
-                                        </button>
+                                        <button onclick="openEditModal({{ $admin->id }}, '{{ $admin->name }}', '{{ $admin->email }}', '{{ $admin->purok }}', '{{ $admin->password_plain }}')" 
+    class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+    Edit
+</button>
                                         <!-- Delete Modal Trigger -->
                                         <button onclick="openDeleteModal({{ $admin->id }}, '{{ $admin->name }}')" 
                                             class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
                                             Delete
                                         </button>
                                     </td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>
@@ -166,37 +152,51 @@
     </main>
 
     <!-- Edit Modal -->
-    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            <h3 class="text-xl font-bold text-red-600 mb-4">Edit User Admin</h3>
-            <form id="editForm" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-1">Name</label>
-                    <input type="text" name="name" id="editName" class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" id="editEmail" class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-1">Purok</label>
-                    <select name="purok" id="editPurok" class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
-                        <option value="purok1">Purok 1</option>
-                        <option value="purok2">Purok 2</option>
-                        <option value="purok3">Purok 3</option>
-                        <option value="purok4">Purok 4</option>
-                        <option value="purok5">Purok 5</option>
-                    </select>
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Save</button>
-                </div>
-            </form>
-        </div>
+<div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h3 class="text-xl font-bold text-red-600 mb-4">Edit User Admin</h3>
+        <form id="editForm" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-1">Name</label>
+                <input type="text" name="name" id="editName" 
+                       class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-1">Email</label>
+                <input type="email" name="email" id="editEmail" 
+                       class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-1">Purok</label>
+                <select name="purok" id="editPurok" 
+                        class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
+                    <option value="purok1">Purok 1</option>
+                    <option value="purok2">Purok 2</option>
+                    <option value="purok3">Purok 3</option>
+                    <option value="purok4">Purok 4</option>
+                    <option value="purok5">Purok 5</option>
+                    <option value="purok6">Purok 6</option>
+                    <option value="purok7">Purok 7</option>
+                </select>
+            </div>
+            <!-- Password Display -->
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-1">Generated Password</label>
+                <input type="text" id="editPassword" 
+                       class="w-full bg-gray-100 border border-gray-300 rounded-lg shadow-sm" 
+                       readonly>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeEditModal()" 
+                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Save</button>
+            </div>
+        </form>
     </div>
+</div>
 
     <!-- Delete Modal -->
     <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -215,24 +215,14 @@
     </div>
 
     <script>
-    function togglePassword(fieldId, btn) {
-        const input = document.getElementById(fieldId);
-        if (input.type === "password") {
-            input.type = "text";
-            btn.textContent = "Hide";
-        } else {
-            input.type = "password";
-            btn.textContent = "Show";
-        }
-    }
-
-    function openEditModal(id, name, email, purok) {
-        document.getElementById('editForm').action = `/useradmin/${id}`;
-        document.getElementById('editName').value = name;
-        document.getElementById('editEmail').value = email;
-        document.getElementById('editPurok').value = purok;
-        document.getElementById('editModal').classList.remove('hidden');
-    }
+    function openEditModal(id, name, email, purok, password) {
+    document.getElementById('editForm').action = `/useradmin/${id}`;
+    document.getElementById('editName').value = name;
+    document.getElementById('editEmail').value = email;
+    document.getElementById('editPurok').value = purok;
+    document.getElementById('editPassword').value = password; // show password
+    document.getElementById('editModal').classList.remove('hidden');
+}
     function closeEditModal() {
         document.getElementById('editModal').classList.add('hidden');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserAdminController extends Controller
 {
@@ -15,24 +16,29 @@ class UserAdminController extends Controller
 }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'purok'    => 'required|string|max:50',
-        ]);
+{
+    $request->validate([
+        'name'  => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users',
+        'purok' => 'required|string|max:50',
+    ]);
 
-        User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'usertype' => 'useradmin',
-            'purok'    => $request->purok,
-        ]);
+    // Auto-generate a random 8-character password
+    $generatedPassword = Str::random(8);
 
-        return redirect()->route('useradmin.create')->with('success', 'User Admin created successfully!');
-    }
+    User::create([
+        'name'     => $request->name,
+        'email'    => $request->email,
+        'password' => Hash::make($generatedPassword),
+         'password_plain' => $generatedPassword, // store un-hashed
+        'usertype' => 'useradmin',
+        'purok'    => $request->purok,
+    ]);
+
+    // ⚡ Option 1: Flash generated password to session (to show in Blade)
+    return redirect()->route('useradmin.create')
+        ->with('success', 'User Admin created successfully! Temporary Password: ' . $generatedPassword);
+}
 
     public function update(Request $request, $id)
 {

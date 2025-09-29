@@ -71,5 +71,12 @@ class InfantController extends Controller
 
     return back()->with('success', 'Infant updated successfully');
 }
+
+public function show($id)
+{
+    $infant = Infant::with('immunization')->findOrFail($id);
+    return view('beneficiaries.infant_show', compact('infant'));
+}
+
      
  }

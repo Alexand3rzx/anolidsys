@@ -74,6 +74,13 @@ public function destroy($id)
 
     return redirect()->route('beneficiaries.index')->with('success', 'Record deleted successfully!');
 }
+
+public function show($id)
+{
+    $woman = Pregnant::findOrFail($id);
+    return view('beneficiaries.pregnant_show', compact('woman'));
+}
+
 }
 
 

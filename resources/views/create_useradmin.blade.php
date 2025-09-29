@@ -16,7 +16,7 @@
         <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
     </div>
     <nav class="flex-grow">
-        <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
+        <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
         <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
         <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
 

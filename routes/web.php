@@ -171,3 +171,8 @@ Route::get('/medicines/request', [MedicineController::class, 'request'])
 
 
 
+// Pregnant detail page
+Route::get('/beneficiaries/pregnant/{id}', [PregnantController::class, 'show'])->name('pregnant.show');
+
+// Infant detail page
+Route::get('/beneficiaries/infant/{id}', [InfantController::class, 'show'])->name('infant.show');

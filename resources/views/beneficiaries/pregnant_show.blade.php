@@ -9,29 +9,47 @@
 <body class="bg-gray-100">
 
 <div class="flex min-h-screen">
-    <!-- Sidebar -->
-    <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold">Health Management System</h1>
-            <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
+   <!-- Sidebar -->
+<aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
+    <div class="p-6">
+        <h1 class="text-2xl font-bold">Health Management System</h1>
+        <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
+    </div>
+    <nav class="flex-grow">
+        <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
+        <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
+
+        <!-- Beneficiaries Dropdown -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open" class="w-full flex justify-between items-center py-2.5 px-4 hover:bg-red-600 focus:outline-none">
+                <span>Beneficiaries</span>
+                <svg :class="{'rotate-180': open}" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div x-show="open" class="ml-4 mt-1 space-y-1">
+                <a href="{{ route('beneficiaries.pregnants') }}" class="block py-2.5 px-4 hover:bg-red-600">Pregnants</a>
+                <a href="{{ route('beneficiaries.infants') }}" class="block py-2.5 px-4 hover:bg-red-600">Infants</a>
+            </div>
         </div>
-        <nav class="flex-grow">
-            <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
-            <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
-            <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 bg-red-600">Beneficiaries</a>
-            @if(Auth::check() && Auth::user()->usertype === 'admin')
-                <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
-            @endif
-        </nav>
-        <footer class="p-4">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
-                    Logout
-                </button>
-            </form>
-        </footer>
-    </aside>
+
+        @if(Auth::check() && Auth::user()->usertype === 'admin')
+            <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
+        @endif
+    </nav>
+    <footer class="p-4">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
+                Logout
+            </button>
+        </form>
+    </footer>
+</aside>
+
+<!-- AlpineJS for dropdown -->
+<script src="//unpkg.com/alpinejs" defer></script>
+
 
     <!-- Main Content -->
     <main class="flex-grow p-8">
@@ -52,13 +70,13 @@
 
                     <div>
                         <label class="block text-sm font-medium">Age</label>
-                        <input type="number" name="prgage" value="{{ old('prgage', $woman->prgage) }}" 
-                               class="w-full border rounded px-3 py-2" required>
+                        <input type="number" id="prgage" name="prgage" value="{{ old('prgage', $woman->prgage) }}" 
+                               class="w-full border rounded px-3 py-2" required readonly>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium">Date of Birth</label>
-                        <input type="date" name="prgbday" value="{{ old('prgbday', $woman->prgbday) }}" 
+                        <input type="date" id="prgbday" name="prgbday" value="{{ old('prgbday', $woman->prgbday) }}" 
                                class="w-full border rounded px-3 py-2" required>
                     </div>
 
@@ -66,6 +84,21 @@
                         <label class="block text-sm font-medium">Address</label>
                         <input type="text" name="prgaddress" value="{{ old('prgaddress', $woman->prgaddress) }}" 
                                class="w-full border rounded px-3 py-2" required>
+                    </div>
+
+                    <!-- NEW: Purok Dropdown -->
+                    <div>
+                        <label class="block text-sm font-medium">Purok</label>
+                        <select name="purok" class="w-full border rounded px-3 py-2" required>
+                            <option value="">-- Select Purok --</option>
+                            <option value="purok1" {{ old('purok', $woman->purok) == 'purok1' ? 'selected' : '' }}>Purok 1</option>
+                            <option value="purok2" {{ old('purok', $woman->purok) == 'purok2' ? 'selected' : '' }}>Purok 2</option>
+                            <option value="purok3" {{ old('purok', $woman->purok) == 'purok3' ? 'selected' : '' }}>Purok 3</option>
+                            <option value="purok4" {{ old('purok', $woman->purok) == 'purok4' ? 'selected' : '' }}>Purok 4</option>
+                            <option value="purok5" {{ old('purok', $woman->purok) == 'purok5' ? 'selected' : '' }}>Purok 5</option>
+                            <option value="purok6" {{ old('purok', $woman->purok) == 'purok6' ? 'selected' : '' }}>Purok 6</option>
+                            <option value="purok7" {{ old('purok', $woman->purok) == 'purok7' ? 'selected' : '' }}>Purok 7</option>
+                        </select>
                     </div>
 
                     <div>
@@ -128,7 +161,7 @@
 
                 <!-- Actions -->
                 <div class="col-span-2 flex justify-between items-center mt-6">
-                    <a href="{{ route('beneficiaries.index') }}" 
+                    <a href="{{ route('beneficiaries.pregnants') }}" 
                        class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
                         Back
                     </a>
@@ -143,6 +176,20 @@
         </div>
     </main>
 </div>
+
+<!-- Auto Age Calculation -->
+<script>
+    document.getElementById('prgbday').addEventListener('change', function () {
+        let dob = new Date(this.value);
+        let today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        let m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        document.getElementById('prgage').value = age >= 0 ? age : '';
+    });
+</script>
 
 </body>
 </html>

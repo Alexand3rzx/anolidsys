@@ -19,6 +19,7 @@ class Infant extends Model
         'child_gender',
         'child_height',
         'child_weight',
+        'purok'
         
     ];
 

@@ -85,12 +85,14 @@ Route::middleware(['auth'])->group(function () {
 //beneficiaries
 //Route::resource('beneficiaries', BeneficiaryController::class);
 Route::get('/beneficiaries', [BeneficiaryController::class, 'index'])->name('beneficiaries.index');
-//Route::post('/beneficiaries/store', [BeneficiaryController::class, 'store'])->name('beneficiaries.store');
-//Route::post('/beneficiaries/store-pregnant', [BeneficiaryController::class, 'storePregnant'])->name('beneficiaries.storePregnant');
-//Route::post('/beneficiaries/store-infant', [BeneficiaryController::class, 'storeInfant'])->name('beneficiaries.storeInfant');
-
-//Route::delete('/beneficiaries/{id}', [BeneficiaryController::class, 'destroy'])->name('beneficiaries.destroy');
-//Route::put('/beneficiaries/{id}', [BeneficiaryController::class, 'update'])->name('beneficiaries.update');
+// Beneficiaries split
+Route::get('/beneficiaries/pregnants', [BeneficiaryController::class, 'pregnants'])->name('beneficiaries.pregnants');
+Route::get('/beneficiaries/infants', [BeneficiaryController::class, 'infants'])->name('beneficiaries.infants');
+Route::get('/beneficiaries/pregnants', [PregnantController::class, 'index'])->name('beneficiaries.pregnants');
+Route::get('/beneficiaries/infants', [InfantController::class, 'index'])->name('beneficiaries.infants');
+// AJAX searches
+Route::get('/beneficiaries/searchPregnant', [BeneficiaryController::class, 'searchPregnant'])->name('beneficiaries.searchPregnant');
+Route::get('/beneficiaries/searchInfant', [BeneficiaryController::class, 'searchInfant'])->name('beneficiaries.searchInfant');
 require __DIR__.'/auth.php';
 
 //pregnant

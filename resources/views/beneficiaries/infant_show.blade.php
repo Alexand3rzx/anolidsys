@@ -9,29 +9,47 @@
 <body class="bg-gray-100">
 
 <div class="flex h-screen">
-    <!-- Sidebar -->
-    <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold">Health Management System</h1>
-            <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
+   <!-- Sidebar -->
+<aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
+    <div class="p-6">
+        <h1 class="text-2xl font-bold">Health Management System</h1>
+        <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
+    </div>
+    <nav class="flex-grow">
+        <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
+        <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
+
+        <!-- Beneficiaries Dropdown -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open" class="w-full flex justify-between items-center py-2.5 px-4 hover:bg-red-600 focus:outline-none">
+                <span>Beneficiaries</span>
+                <svg :class="{'rotate-180': open}" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div x-show="open" class="ml-4 mt-1 space-y-1">
+                <a href="{{ route('beneficiaries.pregnants') }}" class="block py-2.5 px-4 hover:bg-red-600">Pregnants</a>
+                <a href="{{ route('beneficiaries.infants') }}" class="block py-2.5 px-4 hover:bg-red-600">Infants</a>
+            </div>
         </div>
-        <nav class="flex-grow">
-            <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
-            <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
-            <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 bg-red-600">Beneficiaries</a>
-            @if(Auth::check() && Auth::user()->usertype === 'admin')
-                <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
-            @endif
-        </nav>
-        <footer class="p-4">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
-                    Logout
-                </button>
-            </form>
-        </footer>
-    </aside>
+
+        @if(Auth::check() && Auth::user()->usertype === 'admin')
+            <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
+        @endif
+    </nav>
+    <footer class="p-4">
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
+                Logout
+            </button>
+        </form>
+    </footer>
+</aside>
+
+<!-- AlpineJS for dropdown -->
+<script src="//unpkg.com/alpinejs" defer></script>
+
 
     <!-- Main Content -->
     <main class="flex-grow p-6 overflow-y-auto">
@@ -56,6 +74,18 @@
 
                     <label class="block mb-2">Address</label>
                     <input type="text" name="child_address" value="{{ $infant->child_address }}" class="border p-2 w-full rounded mb-4" required>
+
+                    <label class="block mb-2">Purok</label>
+                    <select name="purok" class="border p-2 w-full rounded mb-4" required>
+                        <option value="">Select Purok</option>
+                        <option value="purok1" {{ $infant->purok === 'purok1' ? 'selected' : '' }}>Purok 1</option>
+                        <option value="purok2" {{ $infant->purok === 'purok2' ? 'selected' : '' }}>Purok 2</option>
+                        <option value="purok3" {{ $infant->purok === 'purok3' ? 'selected' : '' }}>Purok 3</option>
+                        <option value="purok4" {{ $infant->purok === 'purok4' ? 'selected' : '' }}>Purok 4</option>
+                        <option value="purok5" {{ $infant->purok === 'purok5' ? 'selected' : '' }}>Purok 5</option>
+                        <option value="purok6" {{ $infant->purok === 'purok6' ? 'selected' : '' }}>Purok 6</option>
+                        <option value="purok7" {{ $infant->purok === 'purok7' ? 'selected' : '' }}>Purok 7</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block mb-2">Mother's Name</label>
@@ -77,7 +107,129 @@
                     <input type="number" step="0.1" name="child_weight" value="{{ $infant->child_weight }}" class="border p-2 w-full rounded mb-4" required>
                 </div>
             </div>
+            
+       <!-- Recommended Vaccination Schedule (Innovated Table Design - Fixed) -->
+<div x-data="{ open: false }" class="bg-blue-50 border border-blue-300 rounded-xl shadow-md p-5 mb-8 transition-all duration-300">
+    <!-- Header / Toggle -->
+    <div class="flex justify-between items-center cursor-pointer select-none" @click="open = !open">
+        <div class="flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h4 class="font-semibold text-lg text-blue-800">Recommended Vaccination Schedule</h4>
+        </div>
+        <svg :class="{ 'rotate-180': open }" class="w-5 h-5 transform transition-transform duration-200 text-blue-600"
+             fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+    </div>
+    <!-- Collapsible Content -->
+    <div x-show="open" x-collapse class="mt-4 text-sm text-gray-700 leading-relaxed space-y-4">
+        <p class="mb-3 text-gray-600">
+            Based on the child’s date of birth, here are the suggested vaccination dates:
+        </p>
+        <!-- Innovated Table: Clean, responsive with date pills for better presentation -->
+        <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+            <table id="vaccineTable"
+                   class="min-w-full text-sm bg-white divide-y divide-gray-200">
+                <thead class="bg-blue-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider border-r border-gray-200">Vaccine</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-blue-900 uppercase tracking-wider">Recommended Date(s)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200" id="vaccineTbody">
+                    <!-- Placeholder rows (populated by JS) -->
+                    <tr class="hover:bg-blue-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 border-r border-gray-200">BCG</td>
+                        <td class="px-6 py-4 text-gray-700">—</td>
+                    </tr>
+                    <tr class="bg-gray-50 hover:bg-blue-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 border-r border-gray-200">Hepatitis B</td>
+                        <td class="px-6 py-4 text-gray-700">—</td>
+                    </tr>
+                    <tr class="hover:bg-blue-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 border-r border-gray-200">Pentavalent (3 doses)</td>
+                        <td class="px-6 py-4 text-gray-700">—</td>
+                    </tr>
+                    <tr class="bg-gray-50 hover:bg-blue-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 border-r border-gray-200">OPV (3 doses)</td>
+                        <td class="px-6 py-4 text-gray-700">—</td>
+                    </tr>
+                    <tr class="hover:bg-blue-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 border-r border-gray-200">IPV (2 doses)</td>
+                        <td class="px-6 py-4 text-gray-700">—</td>
+                    </tr>
+                    <tr class="bg-gray-50 hover:bg-blue-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 border-r border-gray-200">PCV (3 doses)</td>
+                        <td class="px-6 py-4 text-gray-700">—</td>
+                    </tr>
+                    <tr class="hover:bg-blue-50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 border-r border-gray-200">MMR (2 doses)</td>
+                        <td class="px-6 py-4 text-gray-700">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+       
+        <p class="text-xs text-gray-500 italic flex items-center">
+            <span class="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full mr-2"></span>
+            These are recommended schedules. Adjust based on actual administration or medical advice.
+        </p>
+        <!-- PDF Download Button -->
+        <div class="flex justify-end">
+            <button onclick="downloadVaccinePDF()"
+                    class="flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition-all duration-200 font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Download Schedule (PDF)
+            </button>
+        </div>
+    </div>
+    <!-- Custom Styles for Date Pills (Innovated Presentation) -->
+    <style>
+        .date-pill {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            padding: 0.25rem 0.75rem;
+            margin: 0.125rem 0.25rem 0.125rem 0;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #93c5fd;
+        }
+        .date-pill::before {
+            content: '📅';
+            margin-right: 0.25rem;
+            font-size: 0.75rem;
+        }
+        .dose-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        @media (max-width: 640px) {
+            .date-pill {
+                display: block;
+                margin: 0.125rem 0;
+                text-align: center;
+            }
+            .dose-list {
+                flex-direction: column;
+            }
+        }
+    </style>
+</div>
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
             <!-- Immunization Section -->
             <h3 class="text-2xl font-bold mb-6">Immunization</h3>
             <table class="w-full border-collapse bg-white shadow-lg mb-6">
@@ -231,7 +383,7 @@
 
             <!-- Action Buttons -->
             <div class="flex justify-end mt-6">
-                <a href="{{ route('beneficiaries.index') }}" class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">Cancel</a>
+                <a href="{{ route('beneficiaries.infants') }}" class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">Cancel</a>
                 <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Save Changes</button>
             </div>
         </form>
@@ -323,6 +475,105 @@
         targetInput = null;
         document.getElementById("confirmModal").classList.add("hidden");
     });
+
+   // 🩺 Vaccine Recommendation Logic (Table Format - using BCG/Hepatitis B as base)
+function calculateRecommendedDates(baseDate) {
+    const base = new Date(baseDate);
+    if (isNaN(base)) return {};
+
+    const addWeeks = (w) => {
+        const date = new Date(base);
+        date.setDate(date.getDate() + w * 7);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    return {
+        bcg: addWeeks(0),
+        hepatitis_b: addWeeks(0),
+        pentavalent: [addWeeks(6), addWeeks(10), addWeeks(14)],
+        opv: [addWeeks(6), addWeeks(10), addWeeks(14)],
+        ipv: [addWeeks(14), addWeeks(20)],
+        pcv: [addWeeks(6), addWeeks(10), addWeeks(14)],
+        mmr: [addWeeks(36), addWeeks(52)]
+    };
+}
+
+// 🧮 Update Vaccine Table (uses BCG/Hepatitis B as base)
+function updateVaccineTable() {
+    const bcgDate = document.querySelector('input[name="bcg_date"]')?.value;
+    const hepDate = document.querySelector('input[name="hepatitis_b_date"]')?.value;
+    const bdayDate = document.querySelector('input[name="child_bday"]')?.value;
+
+    // 🩹 Pick the base date: BCG → Hepatitis B → Birthday
+    const baseDate = bcgDate || hepDate || bdayDate;
+    const vaccineTable = document.getElementById("vaccineTable");
+    if (!baseDate || !vaccineTable) return;
+
+    const rec = calculateRecommendedDates(baseDate);
+
+    vaccineTable.innerHTML = `
+        <tr><td class="px-3 py-2 font-medium border border-gray-300">BCG</td><td class="px-3 py-2 border border-gray-300">${rec.bcg}</td></tr>
+        <tr><td class="px-3 py-2 font-medium border border-gray-300">Hepatitis B</td><td class="px-3 py-2 border border-gray-300">${rec.hepatitis_b}</td></tr>
+        <tr><td class="px-3 py-2 font-medium border border-gray-300">Pentavalent (3 doses)</td><td class="px-3 py-2 border border-gray-300">${rec.pentavalent.join('<br>')}</td></tr>
+        <tr><td class="px-3 py-2 font-medium border border-gray-300">OPV (3 doses)</td><td class="px-3 py-2 border border-gray-300">${rec.opv.join('<br>')}</td></tr>
+        <tr><td class="px-3 py-2 font-medium border border-gray-300">IPV (2 doses)</td><td class="px-3 py-2 border border-gray-300">${rec.ipv.join('<br>')}</td></tr>
+        <tr><td class="px-3 py-2 font-medium border border-gray-300">PCV (3 doses)</td><td class="px-3 py-2 border border-gray-300">${rec.pcv.join('<br>')}</td></tr>
+        <tr><td class="px-3 py-2 font-medium border border-gray-300">MMR (2 doses)</td><td class="px-3 py-2 border border-gray-300">${rec.mmr.join('<br>')}</td></tr>
+    `;
+}
+
+// 🔁 Sync BCG → Hepatitis B automatically
+document.addEventListener("DOMContentLoaded", function () {
+    const bcgInput = document.querySelector('input[name="bcg_date"]');
+    const hepInput = document.querySelector('input[name="hepatitis_b_date"]');
+    const bdayInput = document.querySelector('input[name="child_bday"]');
+
+    if (!bcgInput || !hepInput) return;
+
+    // If BCG changes, copy to Hepatitis B and refresh
+    bcgInput.addEventListener("change", function () {
+        if (this.value) {
+            hepInput.value = this.value;
+        }
+        updateVaccineTable();
+    });
+
+    // Refresh whenever relevant dates change
+    [hepInput, bdayInput].forEach(input => {
+        if (input) input.addEventListener("change", updateVaccineTable);
+    });
+
+    // Initial load
+    updateVaccineTable();
+});
+
+// 🧾 Generate PDF
+function downloadVaccinePDF() {
+    const table = document.getElementById("vaccineTable").cloneNode(true);
+    const childName = document.querySelector('input[name="child_name"]')?.value || 'Infant';
+    const bcgDate = document.querySelector('input[name="bcg_date"]')?.value;
+    const hepDate = document.querySelector('input[name="hepatitis_b_date"]')?.value;
+    const baseUsed = bcgDate ? `BCG: ${bcgDate}` : hepDate ? `Hepatitis B: ${hepDate}` : '';
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+        <h2 style="text-align:center; color:#1e40af;">Recommended Vaccination Schedule</h2>
+        <p style="text-align:center; margin-bottom:10px;">Child: <strong>${childName}</strong> ${baseUsed ? `• Base Date: ${baseUsed}` : ''}</p>
+        ${table.outerHTML}
+        <p style="font-size:12px; text-align:center; margin-top:10px; color:gray;">
+            Generated by BAHMS | ${new Date().toLocaleDateString()}
+        </p>
+    `;
+
+    const opt = {
+        margin: 0.5,
+        filename: `${childName}_Vaccine_Schedule.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(wrapper).save();
+}
 </script>
 
 

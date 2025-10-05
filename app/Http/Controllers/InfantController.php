@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Infant;
 use App\Models\Immunization;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class InfantController extends Controller
 {
@@ -16,6 +17,7 @@ class InfantController extends Controller
             'child_bday' => 'required|date',
             'child_place' => 'required|string',
             'child_address' => 'required|string',
+            'purok' => 'required|string',
             'child_mother' => 'required|string',
             'child_father' => 'required|string',
             'child_gender' => 'required|in:Male,Female',
@@ -32,7 +34,20 @@ class InfantController extends Controller
         return redirect()->route('beneficiaries.index')->with('success', 'Infant added successfully!');
     }
 
+public function index()
+{
+    $user = Auth::user();
 
+    if ($user->usertype === 'admin') {
+        $infants = Infant::paginate(10);
+    } elseif ($user->usertype === 'useradmin') {
+        $infants = Infant::where('purok', $user->purok)->paginate(10);
+    } else {
+        $infants = collect();
+    }
+
+    return view('beneficiaries.infants', compact('infants'));
+}
 
 
 
@@ -53,7 +68,7 @@ class InfantController extends Controller
 {
     $infant = Infant::findOrFail($id);
     $infant->update($request->only([
-        'child_name', 'child_bday', 'child_place', 'child_address',
+        'child_name', 'child_bday', 'child_place', 'child_address','purok',
         'child_mother', 'child_father', 'child_gender', 'child_height', 'child_weight'
     ]));
 

@@ -14,7 +14,7 @@ class Pregnant extends Model
     protected $fillable = [
         'prgname', 'prgage', 'prgbday', 'prgaddress', 'prgoccupation',
         'prgreligion', 'prgmother_name', 'partner_name', 'partner_age',
-        'partner_bday', 'partner_occupation', 'partner_religion', 'partner_number'
+        'partner_bday', 'partner_occupation', 'partner_religion', 'partner_number','purok'
     ];
 }
 

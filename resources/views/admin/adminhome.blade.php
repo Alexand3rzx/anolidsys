@@ -37,9 +37,22 @@
         <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
     </div>
     <nav class="flex-grow">
-        <a href="{{ route('home') }}" class="block py-2.5 px-4 bg-red-600">Dashboard</a>
+        <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
         <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
-        <a href="{{ route('beneficiaries.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Beneficiaries</a>
+
+        <!-- Beneficiaries Dropdown -->
+        <div x-data="{ open: false }" class="relative">
+            <button @click="open = !open" class="w-full flex justify-between items-center py-2.5 px-4 hover:bg-red-600 focus:outline-none">
+                <span>Beneficiaries</span>
+                <svg :class="{'rotate-180': open}" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div x-show="open" class="ml-4 mt-1 space-y-1">
+                <a href="{{ route('beneficiaries.pregnants') }}" class="block py-2.5 px-4 hover:bg-red-600">Pregnants</a>
+                <a href="{{ route('beneficiaries.infants') }}" class="block py-2.5 px-4 hover:bg-red-600">Infants</a>
+            </div>
+        </div>
 
         @if(Auth::check() && Auth::user()->usertype === 'admin')
             <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
@@ -54,6 +67,10 @@
         </form>
     </footer>
 </aside>
+
+<!-- AlpineJS for dropdown -->
+<script src="//unpkg.com/alpinejs" defer></script>
+
 
     <!-- Main Content -->
     <main class="flex-grow p-6">

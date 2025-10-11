@@ -5,111 +5,188 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Medicine;
-use App\Models\Beneficiary;
 use App\Models\Pregnant;
 use App\Models\Infant;
-use Carbon\Carbon;
+use App\Models\MedicineRequest;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
- 
-
-
-
-public function index(Request $request)
+    public function index(Request $request)
 {
-    if (Auth::id()) {
-        $usertype = Auth()->user()->usertype;
+    if (! Auth::id()) {
+        return redirect()->route('login');
+    }
 
-        if ($usertype == 'user') {
-            return view('dashboard');
-        } elseif ($usertype == 'admin' || $usertype == 'useradmin') {
-            
-            $selectedPurok = $request->get('purok');
+    $usertype = Auth::user()->usertype;
 
-            if ($usertype == 'admin') {
-                $query = Medicine::select(
-                        DB::raw('MIN(id) as id'),
-                        'name',
-                        'purok',
-                        DB::raw('SUM(stock) as stock')
-                    )
-                    ->groupBy('name', 'purok')
-                    ->orderBy('name', 'asc');
+    // Regular user view
+    if ($usertype === 'user') {
+        return view('dashboard');
+    }
 
-                if ($selectedPurok) {
-                    $query->where('purok', $selectedPurok);
-                }
+    // Admin / Useradmin view
+    if ($usertype === 'admin' || $usertype === 'useradmin') {
+        $selectedPurok = $request->get('purok');
+        $userPurok = Auth::user()->purok; // ⭐
 
-                $medicines = $query->get();
+        // -------------------------------
+        // MEDICINE INVENTORY
+        // -------------------------------
+        if ($usertype === 'admin') {
+            $query = Medicine::select(
+                    DB::raw('MIN(id) as id'),
+                    'name',
+                    'purok',
+                    DB::raw('SUM(stock) as stock'),
+                    'expiration'
+                )
+                ->groupBy('name', 'purok', 'expiration')
+                ->orderBy('name', 'asc');
 
-                // Get list of distinct puroks for dropdown
-                $puroks = Medicine::distinct()->pluck('purok');
-            } else {
-                // useradmin → only their purok
-                $medicines = Medicine::where('purok', Auth::user()->purok)
-                    ->select(
-                        DB::raw('MIN(id) as id'),
-                        'name',
-                        'purok',
-                        DB::raw('SUM(stock) as stock')
-                    )
-                    ->groupBy('name', 'purok')
-                    ->orderBy('name', 'asc')
-                    ->get();
-
-                $puroks = collect([Auth::user()->purok]); // just their purok
-                $selectedPurok = Auth::user()->purok;
+            if ($selectedPurok) {
+                $query->where('purok', $selectedPurok);
             }
 
-            // ✅ Pregnant statistics
-            $pregnantBelow18 = Pregnant::where('prgage', '<', 18)->count();
-            $pregnantAbove18 = Pregnant::where('prgage', '>=', 18)->count();
-
-            // ✅ Infant gender statistics
-            $infantMale = Infant::where('child_gender', 'Male')->count();
-            $infantFemale = Infant::where('child_gender', 'Female')->count();
-
-            // ✅ Notifications (latest 10)
-            $notifications = \App\Models\Notification::latest()->take(10)->get();
-
-            
-
-            return view('admin.adminhome', compact(
-                'medicines', 
-                'puroks',
-                'selectedPurok',
-                'pregnantBelow18', 
-                'pregnantAbove18', 
-                'infantMale', 
-                'infantFemale',
-                'notifications',
-                
-            ));
+            $medicines = $query->get();
+            $puroks = Medicine::distinct()->pluck('purok');
         } else {
-            $user = Auth::user();
-            switch ($user->beneficiary_type) {
-                case 'pregnant':
-                    return view('user.pregnant_dashboard');
-                case 'senior':
-                    return view('user.senior_dashboard');
-                case 'normal':
-                    return view('user.normal_dashboard');
-                default:
-                    return view('user.home'); // fallback
-            }
+            // useradmin -> only their purok
+            $medicines = Medicine::where('purok', $userPurok)
+                ->select(
+                    DB::raw('MIN(id) as id'),
+                    'name',
+                    'purok',
+                    DB::raw('SUM(stock) as stock'),
+                    'expiration'
+                )
+                ->groupBy('name', 'purok', 'expiration')
+                ->orderBy('name', 'asc')
+                ->get();
+
+            $puroks = collect([$userPurok]);
+            $selectedPurok = $userPurok;
         }
+
+        // -------------------------------
+        // PREGNANT / INFANT COUNTS ⭐
+        // -------------------------------
+        $pregnantQuery = Pregnant::query();
+        $infantQuery = Infant::query();
+
+        if ($usertype === 'useradmin') {
+            $pregnantQuery->where('purok', $userPurok);
+            $infantQuery->where('purok', $userPurok);
+        }
+
+        $totalPregnants = $pregnantQuery->count();
+        $totalInfants = $infantQuery->count();
+        $totalBeneficiaries = $totalPregnants + $totalInfants;
+
+        // Pregnant age split
+        $pregnantBelow18 = (clone $pregnantQuery)->where('prgage', '<', 18)->count();
+        $pregnantAbove18 = (clone $pregnantQuery)->where('prgage', '>=', 18)->count();
+
+        // Infant gender counts
+        $infantMale = (clone $infantQuery)->where('child_gender', 'Male')->count();
+        $infantFemale = (clone $infantQuery)->where('child_gender', 'Female')->count();
+
+        // Pregnant age buckets
+        $pregnantAgeGroups = [
+            'Under 18' => $pregnantBelow18,
+            '18-24' => (clone $pregnantQuery)->whereBetween('prgage', [18, 24])->count(),
+            '25-34' => (clone $pregnantQuery)->whereBetween('prgage', [25, 34])->count(),
+            '35+' => (clone $pregnantQuery)->where('prgage', '>=', 35)->count(),
+        ];
+
+        // -------------------------------
+        // Purok distributions ⭐
+        // -------------------------------
+        if ($usertype === 'useradmin') {
+            $pregnantsByPurok = Pregnant::select('purok', DB::raw('COUNT(*) as total'))
+                ->where('purok', $userPurok)
+                ->groupBy('purok')
+                ->get();
+
+            $infantsByPurok = Infant::select('purok', DB::raw('COUNT(*) as total'))
+                ->where('purok', $userPurok)
+                ->groupBy('purok')
+                ->get();
+        } else {
+            $pregnantsByPurok = Pregnant::select('purok', DB::raw('COUNT(*) as total'))
+                ->groupBy('purok')
+                ->orderBy('purok')
+                ->get();
+
+            $infantsByPurok = Infant::select('purok', DB::raw('COUNT(*) as total'))
+                ->groupBy('purok')
+                ->orderBy('purok')
+                ->get();
+        }
+
+        // -------------------------------
+        // Notifications (latest 10)
+        // -------------------------------
+        $notifications = Notification::latest()->take(10)->get();
+
+        // -------------------------------
+        // Top Requested Medicines (filter by purok) ⭐
+        // -------------------------------
+        $topRequestedMedicines = MedicineRequest::select(
+                'medicines.name',
+                DB::raw('SUM(medicine_requests.quantity) as total_quantity')
+            )
+            ->join('medicines', 'medicine_requests.medicine_id', '=', 'medicines.id')
+            ->whereMonth('medicine_requests.created_at', Carbon::now()->month)
+            ->whereYear('medicine_requests.created_at', Carbon::now()->year)
+            ->where('medicine_requests.status', 'approved');
+
+        if ($usertype === 'useradmin') {
+            $topRequestedMedicines->where('medicines.purok', $userPurok);
+        }
+
+        $topRequestedMedicines = $topRequestedMedicines
+            ->groupBy('medicines.name')
+            ->orderByDesc('total_quantity')
+            ->take(5)
+            ->get();
+
+        // -------------------------------
+        // Pass everything to view
+        // -------------------------------
+        return view('admin.adminhome', compact(
+            'medicines',
+            'puroks',
+            'selectedPurok',
+            'totalPregnants',
+            'totalInfants',
+            'totalBeneficiaries',
+            'pregnantBelow18',
+            'pregnantAbove18',
+            'infantMale',
+            'infantFemale',
+            'pregnantAgeGroups',
+            'pregnantsByPurok',
+            'infantsByPurok',
+            'notifications',
+            'topRequestedMedicines'
+        ));
+    }
+
+    // Fallback for beneficiary dashboards
+    $user = Auth::user();
+    switch ($user->beneficiary_type ?? null) {
+        case 'pregnant':
+            return view('user.pregnant_dashboard');
+        case 'senior':
+            return view('user.senior_dashboard');
+        case 'normal':
+            return view('user.normal_dashboard');
+        default:
+            return view('user.home');
     }
 }
-
-
-
-
-
-
-
-    
 }

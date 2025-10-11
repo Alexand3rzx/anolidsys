@@ -93,6 +93,8 @@ Route::get('/beneficiaries/infants', [InfantController::class, 'index'])->name('
 // AJAX searches
 Route::get('/beneficiaries/searchPregnant', [BeneficiaryController::class, 'searchPregnant'])->name('beneficiaries.searchPregnant');
 Route::get('/beneficiaries/searchInfant', [BeneficiaryController::class, 'searchInfant'])->name('beneficiaries.searchInfant');
+Route::post('/pregnants/{id}/immunizations', [App\Http\Controllers\PregnantImmunizationController::class, 'store'])->name('pregnant.immunization.store');
+Route::delete('/pregnants/{id}/immunizations/{recordId}', [App\Http\Controllers\PregnantImmunizationController::class, 'destroy'])->name('pregnant.immunization.delete');
 require __DIR__.'/auth.php';
 
 //pregnant
@@ -101,6 +103,12 @@ Route::post('/pregnant/store', [PregnantController::class, 'store'])->name('preg
 Route::get('/pregnant/{id}/edit', [PregnantController::class, 'edit'])->name('pregnant.edit');
 Route::put('/pregnant/{id}', [PregnantController::class, 'update'])->name('pregnant.update');
 Route::delete('/pregnant/{id}', [PregnantController::class, 'destroy'])->name('pregnant.destroy');
+
+
+//prgimmnzts
+Route::post('/pregnant/{id}/add-immunization', [PregnantController::class, 'addImmunization'])->name('pregnant.addImmunization');
+
+
 // Resource routes for infants
 Route::resource('infants', InfantController::class)->except(['show']);
 

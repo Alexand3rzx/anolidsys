@@ -26,24 +26,7 @@ return new class extends Migration
             $table->decimal('child_weight', 5, 2); // Weight in kg (e.g., 3.2 kg)
             $table->timestamps();
             
-            Schema::table('infants', function (Blueprint $table) {
-                // Immunization fields
-                $table->date('bcg_date')->nullable();
-                $table->date('hepatitis_b_date')->nullable();
-                $table->date('pentavalent_date_1')->nullable();
-                $table->date('pentavalent_date_2')->nullable();
-                $table->date('pentavalent_date_3')->nullable();
-                $table->date('opv_date_1')->nullable();
-                $table->date('opv_date_2')->nullable();
-                $table->date('opv_date_3')->nullable();
-                $table->date('ipv_date_1')->nullable();
-                $table->date('ipv_date_2')->nullable();
-                $table->date('pcv_date_1')->nullable();
-                $table->date('pcv_date_2')->nullable();
-                $table->date('pcv_date_3')->nullable();
-                $table->date('mmr_date_1')->nullable();
-                $table->date('mmr_date_2')->nullable();
-            });
+           
         });
     }
 

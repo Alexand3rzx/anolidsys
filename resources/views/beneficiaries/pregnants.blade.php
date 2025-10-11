@@ -104,17 +104,21 @@
             <input type="text" name="prgaddress" placeholder="Address" class="w-full border rounded px-3 py-2" required>
             
             <select name="purok" class="w-full border rounded px-3 py-2" required>
-                <option value="">-- Select Purok --</option>
-                <option value="Purok 1">Purok 1</option>
-                <option value="Purok 2">Purok 2</option>
-                <option value="Purok 3">Purok 3</option>
-                <option value="Purok 4">Purok 4</option>
-                <option value="Purok 5">Purok 5</option>
-            </select>
-
+    <option value="">-- Select Purok --</option>
+    <option value="purok1">Purok 1</option>
+    <option value="purok2">Purok 2</option>
+    <option value="purok3">Purok 3</option>
+    <option value="purok4">Purok 4</option>
+    <option value="purok5">Purok 5</option>
+    <option value="purok6">Purok 6</option>
+    <option value="purok7">Purok 7</option>
+</select>
             <input type="text" name="prgoccupation" placeholder="Occupation" class="w-full border rounded px-3 py-2">
             <input type="text" name="prgreligion" placeholder="Religion" class="w-full border rounded px-3 py-2">
-            
+
+            <!-- 👇 NEW FIELD: Number of Times Pregnant -->
+            <input type="number" name="prgtimes" placeholder="Number of times pregnant" class="w-full border rounded px-3 py-2" min="1" required>
+
             <button type="submit" class="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Save</button>
             <button type="button" onclick="closePregnantModal()" class="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded">Cancel</button>
         </form>

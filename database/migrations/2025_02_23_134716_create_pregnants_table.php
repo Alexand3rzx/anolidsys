@@ -10,6 +10,7 @@ return new class extends Migration {
             $table->id();
             $table->string('prgname');
             $table->integer('prgage');
+            $table->integer('prgtimes');
             $table->date('prgbday');
             $table->string('prgaddress');
             $table->string('prgoccupation')->nullable();

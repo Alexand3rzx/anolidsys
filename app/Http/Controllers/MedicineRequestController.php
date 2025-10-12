@@ -8,47 +8,43 @@ use App\Models\MedicineRequest;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class MedicineRequestController extends Controller
 {
     /**
      * Store a new medicine request (Useradmin side).
      */
-
-
-public function store(Request $request)
-{
-    $request->validate([
-        'medicine_id' => 'required|exists:medicines,id',
-        'quantity' => 'required|integer|min:1',
-    ]);
-
-    $userId = auth()->id();
-    $medicineId = $request->medicine_id;
-
-    // fetch medicine name
-    $medicineName = \App\Models\Medicine::find($medicineId)->name ?? 'Unknown Medicine';
-
-    // get the latest request for this user & medicine
-    $existingRequest = MedicineRequest::where('user_id', $userId)
-                                      ->where('medicine_id', $medicineId)
-                                      ->latest()
-                                      ->first();
-
-    if ($existingRequest && $existingRequest->status === 'pending') {
-        // if still pending → just add quantity
-        $existingRequest->quantity += $request->quantity;
-        $existingRequest->save();
-
-        // ✅ log/update notification
-        Notification::create([
-            'user_id' => $userId,
-            'message' => auth()->user()->purok . " updated request for {$medicineName}",
+    public function store(Request $request)
+    {
+        $request->validate([
+            'medicine_id' => 'required|exists:medicines,id',
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        return back()->with('success', 'Request updated successfully (added to existing pending).');
-    } else {
-        // otherwise, create a new pending request
+        $userId = auth()->id();
+        $medicineId = $request->medicine_id;
+        $medicineName = Medicine::find($medicineId)->name ?? 'Unknown Medicine';
+
+        // Check for existing pending request
+        $existingRequest = MedicineRequest::where('user_id', $userId)
+            ->where('medicine_id', $medicineId)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existingRequest) {
+            $existingRequest->quantity += $request->quantity;
+            $existingRequest->save();
+
+            Notification::create([
+                'user_id' => $userId,
+                'message' => Auth::user()->purok . " updated a pending request for {$medicineName}.",
+            ]);
+
+            return back()->with('success', 'Updated existing pending request.');
+        }
+
         MedicineRequest::create([
             'user_id' => $userId,
             'medicine_id' => $medicineId,
@@ -56,123 +52,146 @@ public function store(Request $request)
             'status' => 'pending',
         ]);
 
-        // ✅ new notification
         Notification::create([
             'user_id' => $userId,
-            'message' => auth()->user()->purok . " requested medicine: {$medicineName}",
+            'message' => Auth::user()->purok . " requested medicine: {$medicineName}.",
         ]);
 
-        return back()->with('success', 'New request created successfully.');
+        return back()->with('success', 'Medicine request sent successfully.');
     }
-}
-
-
-
-
 
     /**
-     * Approve a request (Admin side).
-     * Deducts from adminpurok and transfers to requesting purok.
+     * Admin approves a request (with pickup code & date)
      */
-    public function approve($id)
-{
-    $request = MedicineRequest::findOrFail($id);
-    $medicine = Medicine::findOrFail($request->medicine_id);
+    public function approve(Request $request, $id)
+    {
+        $request->validate([
+            'pickup_date' => 'required|date|after_or_equal:today',
+        ]);
 
-    // check if enough stock exists
-    if ($medicine->stock < $request->quantity) {
-        return back()->with('error', 'Not enough stock available.');
+        $medRequest = MedicineRequest::findOrFail($id);
+        $medicine = Medicine::findOrFail($medRequest->medicine_id);
+
+        if ($medicine->stock < $medRequest->quantity) {
+            return back()->with('error', 'Insufficient stock.');
+        }
+
+        $pickupCode = 'RX-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
+
+        $medRequest->update([
+            'status' => 'approved',
+            'pickup_code' => $pickupCode,
+            'pickup_date' => $request->pickup_date,
+        ]);
+
+        Notification::create([
+            'user_id' => $medRequest->user_id,
+            'message' => "Your request for {$medicine->name} is approved. 
+                          Pickup on {$request->pickup_date} with code: {$pickupCode}.",
+        ]);
+
+        return back()->with('success', 'Request approved and pickup details assigned.');
     }
 
-    // deduct from adminpurok
-    $medicine->stock -= $request->quantity;
-    $medicine->save();
+    /**
+     * Confirm pickup — Admin verifies code, completes transaction, and transfers stock.
+     */
+    public function confirmPickup(Request $request)
+    {
+        $request->validate([
+            'pickup_code' => 'required|string',
+        ]);
 
-    // add stock to requesting user's purok
-    $requestingUser = $request->useradmin; // relationship from MedicineRequest model
-    Medicine::create([
-        'name'       => $medicine->name,
-        'details'    => $medicine->details,
-        'stock'      => $request->quantity,
-        'expiration' => $medicine->expiration,
-        'purok'      => $requestingUser->purok, // ✅ purok of requester
-    ]);
+        $medRequest = MedicineRequest::where('pickup_code', $request->pickup_code)
+            ->where('status', 'approved')
+            ->first();
 
-    // mark request as approved
-    $request->status = 'approved';
-    $request->save();
+        if (!$medRequest) {
+            return back()->with('error', 'Invalid or already used pickup code.');
+        }
 
-    return back()->with('success', 'Medicine request approved and stock transferred.');
-}
+        $medicine = Medicine::findOrFail($medRequest->medicine_id);
 
+        if ($medicine->stock < $medRequest->quantity) {
+            return back()->with('error', 'Insufficient stock at pickup.');
+        }
+
+        // Deduct stock from admin
+        $medicine->stock -= $medRequest->quantity;
+        $medicine->save();
+
+        // Add stock to requesting purok
+        $user = $medRequest->useradmin;
+        Medicine::create([
+            'name' => $medicine->name,
+            'details' => $medicine->details,
+            'stock' => $medRequest->quantity,
+            'expiration' => $medicine->expiration,
+            'purok' => $user->purok,
+        ]);
+
+        $medRequest->update([
+            'status' => 'completed',
+            'completed_at' => Carbon::now(),
+        ]);
+
+        Notification::create([
+            'user_id' => $medRequest->user_id,
+            'message' => "Your medicine request for {$medicine->name} is completed and added to Purok {$user->purok}.",
+        ]);
+
+        return back()->with('success', 'Pickup confirmed and stock transferred.');
+    }
 
     /**
-     * Reject a request (Admin side).
+     * Reject a request (Admin side)
      */
     public function reject($id)
     {
-        $request = MedicineRequest::findOrFail($id);
-        $request->status = 'rejected';
-        $request->save();
+        $req = MedicineRequest::findOrFail($id);
+        $req->update(['status' => 'rejected']);
 
-        return back()->with('success', 'Medicine request rejected.');
+        Notification::create([
+            'user_id' => $req->user_id,
+            'message' => "Your medicine request for {$req->medicine->name} was rejected.",
+        ]);
+
+        return back()->with('success', 'Request rejected.');
     }
 
-public function list(Request $request)
-{
-    $search = $request->get('search');
+    /**
+     * User view — show available admin medicines & my requests
+     */
+    public function requestPage(Request $request)
+    {
+        $query = Medicine::where('purok', 'adminpurok')
+            ->select('id', 'name', 'details', 'expiration', DB::raw('SUM(stock) as stock'))
+            ->groupBy('id', 'name', 'details', 'expiration');
 
-    $medicines = Medicine::where('purok', 'adminpurok')
-        ->when($search, function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('details', 'like', "%{$search}%");
-        })
-        ->orderBy('name', 'asc')
-        ->paginate(6);
+        if ($request->filled('search')) {
+            $query->where('name', 'like', "%{$request->search}%");
+        }
 
-    // return partial view for ajax
-    if ($request->ajax()) {
-        return view('partials.medicine_request_table', compact('medicines'))->render();
+        $adminMedicines = $query->get();
+        $myRequests = MedicineRequest::with('medicine')
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('medicines.request', compact('adminMedicines', 'myRequests'));
     }
 
-    return view('medicines.index', compact('medicines'));
-}
+    /**
+     * Admin view — see all requests
+     */
+    public function adminIndex()
+    {
+        Notification::where('is_read', false)->update(['is_read' => true]);
 
-public function create(Request $request)
-{
-    $query = Medicine::where('purok', 'adminpurok')
-        ->select(
-            'name',
-            'details',
-            'expiration',
-            DB::raw('SUM(stock) as stock')
-        )
-        ->groupBy('name', 'details', 'expiration');
+        $requests = MedicineRequest::with('useradmin', 'medicine')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-    if ($request->filled('search')) {
-        $query->where(function($q) use ($request) {
-            $q->where('name', 'like', "%{$request->search}%")
-              ->orWhere('details', 'like', "%{$request->search}%");
-        });
+        return view('medicines.requests_admin', compact('requests'));
     }
-
-    $adminMedicines = $query->get();
-
-    return view('medicines.request', compact('adminMedicines'));
-}
-
-public function adminIndex()
-{
-    // ✅ Mark all unread notifications as read
-    \App\Models\Notification::where('is_read', false)->update(['is_read' => true]);
-
-    $requests = MedicineRequest::with('useradmin', 'medicine')
-                ->orderBy('created_at', 'desc')
-                ->paginate(10);
-
-    return view('medicines.requests_admin', compact('requests'));
-}
-
-
-
 }

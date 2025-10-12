@@ -213,15 +213,17 @@ public function request(Request $request)
 {
     $search = $request->input('search');
 
-    // Only fetch adminpurok medicines
+    // Fetch medicines from admin inventory (or your defined scope)
     $adminMedicines = Medicine::where('purok', 'adminpurok')
         ->when($search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })
+        ->orderBy('name')
         ->paginate(6);
 
     return view('medicines.request', compact('adminMedicines'));
 }
+
 
 public function requestsAdmin(Request $request)
 {
@@ -231,14 +233,15 @@ public function requestsAdmin(Request $request)
         ->when($search, function ($query, $search) {
             $query->whereHas('medicine', function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%");
-            });
+            })->orWhereHas('useradmin', function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%");
+            })->orWhere('pickup_code', 'like', "%$search%");
         })
         ->orderBy('created_at', 'desc')
         ->paginate(10);
 
     return view('medicines.requests_admin', compact('requests'));
 }
-
 
 
     

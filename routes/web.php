@@ -158,27 +158,24 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-// Useradmin creates a medicine request
-Route::post('/medicine-requests', [MedicineRequestController::class, 'store'])
-    ->name('medicine-requests.store');
-
-// Admin approves a request
-Route::post('/medicine-requests/{id}/approve', [MedicineRequestController::class, 'approve'])
-    ->name('medicine-requests.approve');
-
-// Admin rejects a request
-Route::post('/medicine-requests/{id}/reject', [MedicineRequestController::class, 'reject'])
-    ->name('medicine-requests.reject');
-
-Route::get('/medicine-requests/list', [MedicineRequestController::class, 'list'])
-    ->name('medicine-requests.list');    
-
+// Medicine Request System
 Route::get('/medicines/request', [MedicineRequestController::class, 'requestPage'])
     ->name('medicines.request');
 
-Route::get('/medicines/request', [MedicineController::class, 'request'])
-    ->name('medicines.request');
+Route::post('/medicine-requests', [MedicineRequestController::class, 'store'])
+    ->name('medicine-requests.store');
 
+Route::post('/medicine-requests/{id}/approve', [MedicineRequestController::class, 'approve'])
+    ->name('medicine-requests.approve');
+
+Route::post('/medicine-requests/{id}/reject', [MedicineRequestController::class, 'reject'])
+    ->name('medicine-requests.reject');
+
+Route::post('/medicine-requests/confirm-pickup', [MedicineRequestController::class, 'confirmPickup'])
+    ->name('medicine-requests.confirmPickup');
+
+Route::get('/medicine-requests/admin', [MedicineRequestController::class, 'adminIndex'])
+    ->name('medicine-requests.admin');
 
 
 // Pregnant detail page

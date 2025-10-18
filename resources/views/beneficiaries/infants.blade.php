@@ -9,7 +9,7 @@
 </head>
 <body class="flex min-h-screen bg-gray-100">
 
-   <!-- Sidebar -->
+<!-- Sidebar -->
 <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
     <div class="p-6">
         <h1 class="text-2xl font-bold">Health Management System</h1>
@@ -54,42 +54,66 @@
 <main class="flex-1 p-8 overflow-y-auto bg-gray-50">
     <div class="max-w-6xl mx-auto space-y-10">
 
-      <!-- Infants List -->
-<div class="bg-white rounded-xl shadow">
-    <div class="flex justify-between items-center p-6 border-b">
-        <h2 class="text-xl font-bold text-red-600">Infants</h2>
-        <div class="flex space-x-3">
-            <input type="text" id="searchInfant" placeholder="Search infants..." class="border rounded px-3 py-2 text-sm">
-            <button onclick="openInfantModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                + Add Infant
-            </button>
-        </div>
-    </div>
+        <!-- Infants List -->
+        <div class="bg-white rounded-xl shadow">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h2 class="text-xl font-bold text-red-600">Infants</h2>
+                <div class="flex space-x-3 items-center">
+                    <!-- Search Input -->
+                    <input type="text" id="searchInfant" placeholder="Search infants..." class="border rounded px-3 py-2 text-sm">
 
-    <div id="infantList" class="divide-y">
-        @forelse($infants as $infant)
-            <div onclick="window.location='{{ route('infant.show', $infant->id) }}'"
-                 class="p-5 flex justify-between items-center hover:bg-red-50 cursor-pointer">
-                <div>
-                    <p class="text-lg font-semibold text-gray-800">
-                        {{ $infant->child_name }}
-                    </p>
-                    <p class="text-sm text-gray-500">
-                        {{ ucfirst(str_replace('purok', 'Purok ', $infant->purok)) }}
-                    </p>
-                    <p class="text-sm text-gray-500">Gender: {{ $infant->child_gender }}</p>
-                    <p class="text-sm text-gray-500">Mother: {{ $infant->child_mother }} • Father: {{ $infant->child_father }}</p>
+                    <!-- Purok Filter -->
+                    <select id="filterPurok" class="border rounded px-3 py-2 text-sm">
+                        <option value="">All Puroks</option>
+                        <option value="purok1">Purok 1</option>
+                        <option value="purok2">Purok 2</option>
+                        <option value="purok3">Purok 3</option>
+                        <option value="purok4">Purok 4</option>
+                        <option value="purok5">Purok 5</option>
+                        <option value="purok6">Purok 6</option>
+                        <option value="purok7">Purok 7</option>
+                    </select>
+
+                    <!-- Import/Template Buttons -->
+                    <form method="POST" action="{{ route('infants.import') }}" enctype="multipart/form-data" class="inline">
+                        @csrf
+                        <label class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
+                            Import CSV
+                            <input type="file" name="csv_file" accept=".csv" class="hidden" onchange="this.form.submit()">
+                        </label>
+                    </form>
+
+                    <a href="{{ route('infants.template') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Download Template
+                    </a>
+
+                    <button onclick="openInfantModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        + Add Infant
+                    </button>
                 </div>
-                <span class="text-red-500">&rarr;</span>
             </div>
-        @empty
-            <p class="p-5 text-center text-gray-500">No records found</p>
-        @endforelse
+
+            <div id="infantList" class="divide-y">
+                @forelse($infants as $infant)
+                    <div onclick="window.location='{{ route('infant.show', $infant->id) }}'"
+                         class="p-5 flex justify-between items-center hover:bg-red-50 cursor-pointer">
+                        <div>
+                            <p class="text-lg font-semibold text-gray-800">{{ $infant->child_name }}</p>
+                            <p class="text-sm text-gray-500">{{ ucfirst(str_replace('purok', 'Purok ', $infant->purok)) }}</p>
+                            <p class="text-sm text-gray-500">Gender: {{ $infant->child_gender }}</p>
+                            <p class="text-sm text-gray-500">Mother: {{ $infant->child_mother }} • Father: {{ $infant->child_father }}</p>
+                        </div>
+                        <span class="text-red-500">&rarr;</span>
+                    </div>
+                @empty
+                    <p class="p-5 text-center text-gray-500">No records found</p>
+                @endforelse
+            </div>
+
+            <div class="p-4">{{ $infants->links() }}</div>
+        </div>
+
     </div>
-
-    <div class="p-4">{{ $infants->links() }}</div>
-</div>
-
 </main>
 
 <!-- Add Infant Modal -->
@@ -103,7 +127,7 @@
             <input type="text" name="child_place" placeholder="Place of Birth" class="w-full border rounded px-3 py-2" required>
             <input type="text" name="child_address" placeholder="Address" class="w-full border rounded px-3 py-2" required>
 
-            <!-- NEW: Purok Dropdown -->
+            <!-- Purok Dropdown -->
             <select name="purok" class="w-full border rounded px-3 py-2" required>
                 <option value="">-- Select Purok --</option>
                 <option value="purok1">Purok 1</option>
@@ -117,11 +141,13 @@
 
             <input type="text" name="child_mother" placeholder="Mother's Name" class="w-full border rounded px-3 py-2" required>
             <input type="text" name="child_father" placeholder="Father's Name" class="w-full border rounded px-3 py-2" required>
+
             <select name="child_gender" class="w-full border rounded px-3 py-2" required>
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
             </select>
+
             <input type="number" name="child_height" placeholder="Height (cm)" class="w-full border rounded px-3 py-2" required>
             <input type="number" name="child_weight" placeholder="Weight (kg)" class="w-full border rounded px-3 py-2" required>
 
@@ -137,20 +163,23 @@ function openInfantModal() { document.getElementById('infantModal').classList.re
 function closeInfantModal() { document.getElementById('infantModal').classList.add('hidden'); }
 
 $(document).ready(function(){
-    $('#searchInfant').on('keyup', function() {
-        var query = $(this).val();
+    function filterInfants() {
+        var query = $('#searchInfant').val();
+        var purok = $('#filterPurok').val();
+
         $.ajax({
             url: "{{ route('beneficiaries.searchInfant') }}",
             type: "GET",
-            data: {'query': query},
-            success:function(data){
+            data: { query: query, purok: purok },
+            success: function(data){
                 $('#infantList').html('');
-                if(data.length > 0){
+                if (data.length > 0) {
                     $.each(data, function(index, inf){
                         $('#infantList').append(
-                            '<div class="p-5 flex justify-between items-center hover:bg-red-50 cursor-pointer">'+
+                            '<div onclick="window.location=\'/infants/'+inf.id+'\'" class="p-5 flex justify-between items-center hover:bg-red-50 cursor-pointer">'+
                                 '<div>'+
                                     '<p class="text-lg font-semibold text-gray-800">'+inf.child_name+'</p>'+
+                                    '<p class="text-sm text-gray-500">'+inf.purok.replace("purok", "Purok ")+'</p>'+
                                     '<p class="text-sm text-gray-500">Gender: '+inf.child_gender+'</p>'+
                                     '<p class="text-sm text-gray-500">Mother: '+inf.child_mother+' • Father: '+inf.child_father+'</p>'+
                                 '</div>'+
@@ -163,7 +192,10 @@ $(document).ready(function(){
                 }
             }
         });
-    });
+    }
+
+    $('#searchInfant').on('keyup', filterInfants);
+    $('#filterPurok').on('change', filterInfants);
 });
 </script>
 

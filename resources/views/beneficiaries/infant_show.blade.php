@@ -385,6 +385,10 @@
             <div class="flex justify-end mt-6">
                 <a href="{{ route('beneficiaries.infants') }}" class="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600">Cancel</a>
                 <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Save Changes</button>
+                <a href="{{ route('infants.generateCertificate', $infant->id) }}"
+   class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 ml-2">
+   Generate Vaccination Certificate (PDF)
+</a>
             </div>
         </form>
     </main>

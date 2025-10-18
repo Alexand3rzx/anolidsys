@@ -10,6 +10,8 @@ use App\Http\Controllers\InfantController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\MedicineRequestController;
+use App\Http\Controllers\ImmunizationController;
+use App\Http\Controllers\PregnantImmunizationController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -63,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('medicine.requests.admin');
     Route::get('/medicine-requests/admin', [MedicineRequestController::class, 'adminIndex'])
         ->name('medicine-requests.admin');
+        Route::get('/medicines/template', [MedicineController::class, 'template'])->name('medicines.template');
 
     // Medicine resource routes
     Route::resource('medicines', MedicineController::class);
@@ -79,6 +82,9 @@ Route::middleware(['auth'])->group(function () {
         ->name('medicines.update');
     Route::get('/medicines', [MedicineController::class, 'index'])
         ->name('medicines.index');
+        
+        Route::post('/medicines/import', [MedicineController::class, 'import'])->name('medicines.import');
+
 });
 
 
@@ -183,3 +189,30 @@ Route::get('/beneficiaries/pregnant/{id}', [PregnantController::class, 'show'])-
 
 // Infant detail page
 Route::get('/beneficiaries/infant/{id}', [InfantController::class, 'show'])->name('infant.show');
+
+Route::post('/pregnant/import', [PregnantController::class, 'import'])->name('pregnant.import');
+
+Route::get('/pregnant/template', [PregnantController::class, 'downloadTemplate'])->name('pregnant.template');
+
+Route::post('/infants/import', [InfantController::class, 'import'])->name('infants.import');
+Route::get('/infants/template', [InfantController::class, 'downloadTemplate'])->name('infants.template');
+
+Route::get('/pregnant/{id}/certificate', [PregnantImmunizationController::class, 'generateCertificate'])
+    ->name('pregnant.certificate');
+
+Route::get('/pregnant/{id}/certificate', [PregnantController::class, 'certificate'])
+    ->name('pregnant.certificate');
+
+Route::get('/infants/{id}/certificate', [App\Http\Controllers\InfantController::class, 'generateCertificate'])
+     ->name('infants.generateCertificate');
+
+    Route::get('/notifications/mark-all-read', [App\Http\Controllers\HomeController::class, 'markAllRead'])
+    ->name('notifications.markAllRead')
+    ->middleware('auth');
+
+    Route::get('/admin/report/download', [App\Http\Controllers\HomeController::class, 'downloadReport'])
+    ->name('admin.report.download');
+
+  // Medicine Request pages (handled by HomeController)
+Route::get('/requests', [HomeController::class, 'useradminRequests'])->name('requests.index');
+Route::get('/requests_admin', [HomeController::class, 'adminRequests'])->name('requests.admin');

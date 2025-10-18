@@ -6,6 +6,8 @@ use App\Models\Medicine;
 use App\Models\MedicineRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class MedicineController extends Controller
 {
@@ -83,8 +85,33 @@ public function index(Request $request)
     if ($user->usertype === 'admin') {
         $puroks = Medicine::select('purok')->distinct()->pluck('purok');
     }
+     // ✅ Medicine Logs
+$transactionQuery = \App\Models\MedicineTransaction::query();
+$filterType = $request->input('type');   // 'give' or 'receive'
+$filterPurok = $request->input('log_purok'); // selected purok filter for logs
 
-    return view('medicines.index', compact('medicines', 'adminMedicines', 'puroks'));
+if ($user->usertype === 'admin') {
+    // Admin can see all logs (both receive & give)
+    if ($filterType) {
+        $transactionQuery->where('type', $filterType);
+    }
+
+    if ($filterPurok) {
+        // Filter by medicine's purok
+        $transactionQuery->whereHas('medicine', fn($q) => $q->where('purok', $filterPurok));
+    }
+} elseif ($user->usertype === 'useradmin') {
+    // Useradmin sees give logs from their own purok only
+    $transactionQuery->where('type', 'give')
+                     ->whereHas('medicine', fn($q) => $q->where('purok', $user->purok));
+}
+
+$logs = $transactionQuery->with('medicine')->latest()->paginate(4, ['*'], 'logs_page');
+
+// ✅ Get distinct puroks for log filter dropdown (admin only)
+$logPuroks = \App\Models\Medicine::select('purok')->distinct()->pluck('purok');
+
+    return view('medicines.index', compact('medicines', 'adminMedicines', 'puroks', 'logs',  'logPuroks'));
 }
 
 
@@ -243,7 +270,52 @@ public function requestsAdmin(Request $request)
     return view('medicines.requests_admin', compact('requests'));
 }
 
+public function import(Request $request)
+{
+    $request->validate([
+        'csv_file' => 'required|mimes:csv,txt|max:2048',
+    ]);
 
+    $file = $request->file('csv_file');
+    if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+        // Read header row
+        $header = fgetcsv($handle);
+
+        while (($row = fgetcsv($handle, 0, ',')) !== false) {
+            // Map by index (expect columns: name, details, stock, purok, expiration)
+            \App\Models\Medicine::create([
+                'name' => $row[0] ?? null,
+                'details' => $row[1] ?? null,
+                'stock' => isset($row[2]) ? (int)$row[2] : 0,
+                'purok' => $row[3] ?? 'adminpurok',
+                'expiration' => $row[4] ?? null,
+            ]);
+        }
+        fclose($handle);
+    }
+
+    return redirect()->back()->with('success', 'Medicines imported successfully!');
+}
+
+public function template()
+{
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="medicines_template.csv"',
+    ];
+
+    $columns = ['name', 'details', 'stock', 'purok', 'expiration'];
+
+    $callback = function() use ($columns) {
+        $file = fopen('php://output', 'w');
+        fputcsv($file, $columns);
+        // sample row
+        fputcsv($file, ['Paracetamol', 'Pain reliever/tablet', 100, 'adminpurok', '2026-12-31']);
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
     
 }
 

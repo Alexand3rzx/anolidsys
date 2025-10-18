@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pregnant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use PDF;
 
 class PregnantController extends Controller
 {
@@ -33,6 +34,88 @@ class PregnantController extends Controller
 
         return back()->with('success', 'Pregnant woman added successfully');
     }
+
+    public function import(Request $request)
+{
+    $request->validate([
+        'csv_file' => 'required|mimes:csv,txt|max:2048',
+    ]);
+
+    $file = fopen($request->file('csv_file')->getRealPath(), 'r');
+    $header = fgetcsv($file); // Skip header row
+
+    $imported = 0;
+    while (($row = fgetcsv($file)) !== false) {
+        // Map CSV columns (make sure your CSV matches this order)
+        $data = [
+            'prgname' => $row[0] ?? null,
+            'prgbday' => $row[1] ?? null,
+            'prgage' => $row[2] ?? null,
+            'prgaddress' => $row[3] ?? null,
+            'purok' => $row[4] ?? null,
+            'prgoccupation' => $row[5] ?? null,
+            'prgreligion' => $row[6] ?? null,
+            'prgmother_name' => $row[7] ?? null,
+            'partner_name' => $row[8] ?? null,
+            'partner_age' => $row[9] ?? null,
+            'partner_bday' => $row[10] ?? null,
+            'partner_occupation' => $row[11] ?? null,
+            'partner_religion' => $row[12] ?? null,
+            'partner_number' => $row[13] ?? null,
+            'prgtimes' => $row[14] ?? 1,
+        ];
+
+        // Skip incomplete rows
+        if (!$data['prgname'] || !$data['prgbday'] || !$data['prgaddress']) {
+            continue;
+        }
+
+        try {
+            \App\Models\Pregnant::create($data);
+            $imported++;
+        } catch (\Exception $e) {
+            continue; // Skip bad rows
+        }
+    }
+
+    fclose($file);
+
+    return redirect()->back()->with('success', "{$imported} records imported successfully!");
+}
+
+public function downloadTemplate()
+{
+    $headers = [
+        'Content-Type' => 'text/csv',
+        'Content-Disposition' => 'attachment; filename="pregnants_template.csv"',
+    ];
+
+    $columns = [
+        'prgname',
+        'prgage',
+        'prgtimes',
+        'prgbday',
+        'prgaddress',
+        'purok',
+        'prgoccupation',
+        'prgreligion',
+        'prgmother_name',
+        'partner_name',
+        'partner_age',
+        'partner_bday',
+        'partner_occupation',
+        'partner_religion',
+        'partner_number'
+    ];
+
+    $callback = function() use ($columns) {
+        $file = fopen('php://output', 'w');
+        fputcsv($file, $columns);
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 
     // Show a single record for editing
     public function edit($id)
@@ -175,10 +258,10 @@ public function addImmunization(Request $request, $id)
 
         if ($user->usertype === 'admin') {
             // Admin sees all records
-            $pregnantWomen = Pregnant::paginate(10);
+            $pregnantWomen = Pregnant::paginate(6);
         } elseif ($user->usertype === 'useradmin') {
             // Useradmin sees only their purok
-            $pregnantWomen = Pregnant::where('purok', $user->purok)->paginate(10);
+            $pregnantWomen = Pregnant::where('purok', $user->purok)->paginate(6);
         } else {
             // fallback (normal users see nothing or handle differently)
             $pregnantWomen = collect();
@@ -186,4 +269,16 @@ public function addImmunization(Request $request, $id)
 
         return view('beneficiaries.pregnants', compact('pregnantWomen'));
     }
+
+public function certificate($id)
+{
+    $woman = Pregnant::findOrFail($id);
+
+    $pdf = Pdf::loadView('pregnant_certificate', compact('woman'))
+              ->setPaper('a4', 'portrait'); // <- portrait ensures vertical orientation
+
+    $filename = 'Maternal_Health_Certificate_' . str_replace(' ', '_', $woman->prgname) . '.pdf';
+
+    return $pdf->download($filename);
+}
 }

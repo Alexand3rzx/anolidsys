@@ -10,45 +10,47 @@
 
 <div class="flex min-h-screen">
     <!-- Sidebar -->
-<aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
-    <div class="p-6">
-        <h1 class="text-2xl font-bold">Health Management System</h1>
-        <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
-    </div>
-    <nav class="flex-grow">
-        <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
-        <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
-
-        <!-- Beneficiaries Dropdown -->
-        <div x-data="{ open: false }" class="relative">
-            <button @click="open = !open" class="w-full flex justify-between items-center py-2.5 px-4 hover:bg-red-600 focus:outline-none">
-                <span>Beneficiaries</span>
-                <svg :class="{'rotate-180': open}" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div x-show="open" class="ml-4 mt-1 space-y-1">
-                <a href="{{ route('beneficiaries.pregnants') }}" class="block py-2.5 px-4 hover:bg-red-600">Pregnants</a>
-                <a href="{{ route('beneficiaries.infants') }}" class="block py-2.5 px-4 hover:bg-red-600">Infants</a>
-            </div>
+    <aside class="bg-gradient-to-b from-red-300 via-red-500 to-red-800 text-white w-64 flex flex-col">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold">Health Management System</h1>
+            <p class="text-sm">Brgy. Anolid Mangaldan, Pangasinan</p>
         </div>
 
-        @if(Auth::check() && Auth::user()->usertype === 'admin')
-            <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
-        @endif
-    </nav>
-    <footer class="p-4">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
-                Logout
-            </button>
-        </form>
-    </footer>
-</aside>
+        <nav class="flex-grow">
+            <a href="{{ route('home') }}" class="block py-2.5 px-4 hover:bg-red-600">Dashboard</a>
+            <a href="{{ route('medicines.index') }}" class="block py-2.5 px-4 hover:bg-red-600">Medicine Inventory</a>
 
-<!-- AlpineJS for dropdown -->
-<script src="//unpkg.com/alpinejs" defer></script>
+            <!-- Beneficiaries Dropdown -->
+            <div x-data="{ open: false }" class="relative">
+                <button @click="open = !open" class="w-full flex justify-between items-center py-2.5 px-4 hover:bg-red-600 focus:outline-none">
+                    <span>Beneficiaries</span>
+                    <svg :class="{'rotate-180': open}" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open" class="ml-4 mt-1 space-y-1">
+                    <a href="{{ route('beneficiaries.pregnants') }}" class="block py-2.5 px-4 hover:bg-red-600">Pregnants</a>
+                    <a href="{{ route('beneficiaries.infants') }}" class="block py-2.5 px-4 hover:bg-red-600">Infants</a>
+                </div>
+            </div>
+
+            @if(Auth::check() && Auth::user()->usertype === 'admin')
+                <a href="{{ route('useradmin.create') }}" class="block py-2.5 px-4 hover:bg-red-600">Create User Admin</a>
+            @endif
+        </nav>
+
+        <footer class="p-4">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700">
+                    Logout
+                </button>
+            </form>
+        </footer>
+    </aside>
+
+    <!-- AlpineJS for dropdown -->
+    <script src="//unpkg.com/alpinejs" defer></script>
 
     <!-- Main Content -->
     <main class="flex-1 p-6">
@@ -58,8 +60,7 @@
 
             <!-- Current Purok Badge -->
             @if(Auth::check())
-                <div class="inline-block mt-3 px-4 py-2 rounded-full 
-                            bg-red-100 text-red-700 font-semibold shadow-sm">
+                <div class="inline-block mt-3 px-4 py-2 rounded-full bg-red-100 text-red-700 font-semibold shadow-sm">
                     @if(Auth::user()->usertype === 'admin')
                         Viewing: <span class="text-red-800">adminpurok</span>
                     @elseif(Auth::user()->usertype === 'useradmin')
@@ -68,7 +69,6 @@
                 </div>
             @endif
         </header>
-
         <!-- Medicine Inventory Table -->
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900">
@@ -77,7 +77,7 @@
                     <!-- Role-based Button -->
                     @if(Auth::check())
                         @if(Auth::user()->usertype === 'admin')
-                            <div class="flex gap-3">
+                            <div class="flex gap-3 items-center">
                                 <a href="{{ route('medicines.create') }}" 
                                 class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                                     Add Medicine
@@ -86,6 +86,21 @@
                                 <a href="{{ route('medicine-requests.admin') }}" 
                                 class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
                                     Show Requests
+                                </a>
+
+                                <!-- CSV Import (admin only) -->
+                                <form id="importForm" method="POST" action="{{ route('medicines.import') }}" enctype="multipart/form-data" class="inline">
+                                    @csrf
+                                    <label for="csvFile" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer">
+                                        Import CSV
+                                    </label>
+                                    <input id="csvFile" type="file" name="csv_file" accept=".csv" class="hidden" onchange="confirmImport()" />
+                                </form>
+
+                                <!-- Download Template -->
+                                <a href="{{ route('medicines.template') }}" 
+                                   class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                   Download Template
                                 </a>
                             </div>
                         @elseif(Auth::user()->usertype === 'useradmin')
@@ -216,8 +231,114 @@
                 <div class="mt-4">
                     {{ $medicines->appends(request()->query())->links() }}
                 </div>
+
+              <!-- ============================= -->
+        <!-- SEPARATOR BETWEEN SECTIONS -->
+        <!-- ============================= -->
+        <div class="my-12 border-t border-gray-300"></div>
+
+        <!-- ============================= -->
+        <!-- MEDICINE LOGS SECTION -->
+        <!-- ============================= -->
+        <section class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                @if(Auth::user()->usertype === 'admin')
+                    Medicine Transaction Logs (Receive & Give)
+                @else
+                    Given Medicine Logs
+                @endif
+            </h3>
+
+            @if(Auth::user()->usertype === 'admin')
+                <form method="GET" action="{{ route('medicines.index') }}" class="mb-6 flex flex-wrap items-center gap-4">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="purok" value="{{ request('purok') }}">
+
+                    <div>
+                        <label for="type" class="text-gray-700 font-semibold mr-2">Transaction Type:</label>
+                        <select name="type" id="type" onchange="this.form.submit()" class="border border-gray-300 rounded-md px-3 py-2 bg-white text-sm">
+                            <option value="">All</option>
+                            <option value="receive" {{ request('type') === 'receive' ? 'selected' : '' }}>Receive</option>
+                            <option value="give" {{ request('type') === 'give' ? 'selected' : '' }}>Give</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="log_purok" class="text-gray-700 font-semibold mr-2">Filter by Purok:</label>
+                        <select name="log_purok" id="log_purok" onchange="this.form.submit()" class="border border-gray-300 rounded-md px-3 py-2 bg-white text-sm">
+                            <option value="">All Puroks</option>
+                            @foreach($logPuroks as $purok)
+                                <option value="{{ $purok }}" {{ request('log_purok') === $purok ? 'selected' : '' }}>
+                                    {{ ucfirst($purok) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
+            @endif
+
+            <table class="min-w-full border border-gray-200 text-sm">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Date</th>
+                        <th class="px-4 py-2 text-left">Type</th>
+                        <th class="px-4 py-2 text-left">Medicine</th>
+                        <th class="px-4 py-2 text-left">Quantity</th>
+                        <th class="px-4 py-2 text-left">Purok</th>
+
+                        @if(Auth::user()->usertype === 'admin')
+                            <th class="px-4 py-2 text-left">Donor</th>
+                            <th class="px-4 py-2 text-left">Receiver</th>
+                        @else
+                            <th class="px-4 py-2 text-left">Receiver</th>
+                            <th class="px-4 py-2 text-left">Administered By</th>
+                        @endif
+                        <th class="px-4 py-2 text-left">Details</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @forelse($logs as $log)
+                        @php
+                            $isReceive = $log->type === 'receive';
+                            $rowColor = $isReceive ? 'bg-green-50' : 'bg-red-50';
+                        @endphp
+                        <tr class="border-b hover:bg-gray-100 {{ $rowColor }}">
+                            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($log->created_at)->format('M d, Y h:i A') }}</td>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-1 text-xs font-semibold rounded {{ $isReceive ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800' }}">
+                                    {{ ucfirst($log->type) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2">{{ $log->medicine->name ?? 'Unknown' }}</td>
+                            <td class="px-4 py-2">{{ $log->quantity }}</td>
+                            <td class="px-4 py-2">{{ $log->medicine->purok ?? 'N/A' }}</td>
+
+                            @if(Auth::user()->usertype === 'admin')
+                                <td class="px-4 py-2">{{ $log->donor ?? '-' }}</td>
+                                <td class="px-4 py-2">{{ $log->receiver ?? '-' }}</td>
+                            @else
+                                <td class="px-4 py-2">{{ $log->receiver ?? '-' }}</td>
+                                <td class="px-4 py-2">{{ $log->administered_by ?? '-' }}</td>
+                            @endif
+
+                            <td class="px-4 py-2">{{ $log->details ?? '-' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-gray-500">
+                                No {{ Auth::user()->usertype === 'admin' ? 'transactions' : 'give logs' }} found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="mt-4">
+                {{ $logs->links() }}
             </div>
-        </div>
+        </section>
     </main>
 </div>
 
@@ -416,7 +537,7 @@
             }
         });
     });
-
+    
 
         function openReceiveModal(medicineId, medicineName) {
         document.getElementById('receiveMedicineId').value = medicineId;
@@ -515,9 +636,27 @@
         });
     }
 
+    // CSV import confirmation
+    function confirmImport() {
+        const input = document.getElementById('csvFile');
+        if (!input || !input.files || input.files.length === 0) return;
+
+        const fileName = input.files[0].name;
+        const msg = `Are you sure you want to import "${fileName}"?\n\n` +
+                    `The CSV must have the headers: name, details, stock, purok, expiration\n` +
+                    `Example date format for expiration: YYYY-MM-DD\n\n` +
+                    `This action will add records to the medicines table. Continue?`;
+
+        if (confirm(msg)) {
+            // submit the form
+            document.getElementById('importForm').submit();
+        } else {
+            // clear file input if canceled
+            input.value = '';
+        }
+    }
+
     </script>
-
-
 
     </body>
     </html>

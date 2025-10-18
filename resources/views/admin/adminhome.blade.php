@@ -14,7 +14,7 @@
             background: #f8fafc;
             color: #0f172a;
             font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-            overflow: hidden; /* Prevent body scroll */
+            /* allow page scrolling */
         }
         input, select, textarea {
             background: #ffffff;
@@ -40,14 +40,18 @@
             z-index: 40;
         }
 
-       .main-content {
-    margin-left: 16rem; /* exactly matches sidebar width */
-    width: calc(100% - 16rem); /* fill remaining horizontal space */
-    height: 100vh;
-    overflow-y: auto;
-    padding: 1.5rem;
-}
+        .main-content {
+            margin-left: 16rem; /* exactly matches sidebar width */
+            width: calc(100% - 16rem); /* fill remaining horizontal space */
+            height: 100vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
 
+        /* Small helper to keep notification dropdown above everything */
+        #notifMenu {
+            min-width: 20rem;
+        }
     </style>
 </head>
 <body class="flex">
@@ -91,6 +95,12 @@
 
     <!-- MAIN -->
     <main class="main-content">
+        {{-- Provide safe defaults so view doesn't break if controller didn't pass these --}}
+        @php
+            $notifications = $notifications ?? collect();
+            $unreadCount = $unreadCount ?? 0;
+        @endphp
+
         <header class="flex items-center justify-between mb-6">
             <div>
                 {{-- Dynamic title: show Purok X Dashboard for useradmin, Admin Dashboard for admin --}}
@@ -101,16 +111,31 @@
                     <h2 class="text-2xl font-bold">Admin Dashboard</h2>
                     <p class="text-sm text-gray-500">Overview & analytics</p>
                 @endif
+                
             </div>
-
-            <!-- notifications -->
             @if(Auth::check() && Auth::user()->usertype === 'admin')
+    <a href="{{ route('admin.report.download') }}" 
+       class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+       Download PDF Report
+    </a>
+@endif
+
+            <!-- notifications (header-right) -->
+            @if(Auth::check() && in_array(Auth::user()->usertype, ['admin', 'useradmin']))
             <div class="relative">
-                <button id="notifBtn" onclick="toggleNotifMenu()" class="p-2 rounded hover:bg-gray-100">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="notifBtn" onclick="toggleNotifMenu()" class="relative p-2 rounded hover:bg-gray-100">
+                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5" 
                         stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
                     </svg>
+
+                    <!-- 🔴 Red badge counter -->
+                    @if($unreadCount > 0)
+                        <span id="notifBadge" class="absolute top-0 right-0 inline-flex items-center justify-center 
+                                     w-4 h-4 text-xs font-bold text-white bg-red-600 rounded-full transform translate-x-1 -translate-y-1">
+                            {{ $unreadCount }}
+                        </span>
+                    @endif
                 </button>
 
                 <div id="notifMenu" class="hidden absolute right-0 mt-2 w-80 bg-white border rounded shadow z-50">
@@ -130,57 +155,83 @@
             @endif
         </header>
 
-        <!-- SUMMARY CARDS -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div class="bg-white p-4 rounded shadow">
-                <p class="text-xs text-gray-500">Total Beneficiaries</p>
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold">{{ $totalBeneficiaries ?? 0 }}</h3>
-                    <div class="text-sm text-white bg-blue-100 text-blue-700 px-2 py-1 rounded">{{ (Auth::user()->usertype === 'useradmin') ? ucfirst(str_replace('purok','Purok ',Auth::user()->purok)) : 'All' }}</div>
-                </div>
-                <p class="text-xs text-gray-400 mt-2">Pregnants + Infants</p>
+       <!-- SUMMARY CARDS -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <!-- Total Beneficiaries -->
+    <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition">
+        <p class="text-xs text-gray-500">Total Beneficiaries</p>
+        <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-bold text-gray-900">{{ $totalBeneficiaries ?? 0 }}</h3>
+            <div class="text-sm font-medium px-2 py-1 rounded-lg bg-blue-500 text-white shadow-sm">
+                {{ (Auth::user()->usertype === 'useradmin') ? ucfirst(str_replace('purok','Purok ',Auth::user()->purok)) : 'All' }}
             </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">Pregnants + Infants</p>
+    </div>
 
-            <div class="bg-white p-4 rounded shadow">
-                <p class="text-xs text-gray-500">Pregnant Women</p>
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold">{{ $totalPregnants ?? 0 }}</h3>
-                    <div class="text-sm text-white bg-pink-100 text-pink-700 px-2 py-1 rounded">Pregnants</div>
-                </div>
-                <p class="text-xs text-gray-400 mt-2">{{ $pregnantBelow18 ?? 0 }} under 18 • {{ $pregnantAbove18 ?? 0 }} 18+</p>
+    <!-- Pregnant Women -->
+    <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition">
+        <p class="text-xs text-gray-500">Pregnant Women</p>
+        <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-bold text-gray-900">{{ $totalPregnants ?? 0 }}</h3>
+            <div class="text-sm font-medium px-2 py-1 rounded-lg bg-pink-500 text-white shadow-sm">
+                Pregnants
             </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">{{ $pregnantBelow18 ?? 0 }} under 18 • {{ $pregnantAbove18 ?? 0 }} 18+</p>
+    </div>
 
-            <div class="bg-white p-4 rounded shadow">
-                <p class="text-xs text-gray-500">Infants</p>
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold">{{ $totalInfants ?? 0 }}</h3>
-                    <div class="text-sm text-white bg-green-100 text-green-700 px-2 py-1 rounded">Infants</div>
-                </div>
-                <p class="text-xs text-gray-400 mt-2">{{ $infantMale ?? 0 }} male • {{ $infantFemale ?? 0 }} female</p>
+    <!-- Infants -->
+    <div class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition">
+        <p class="text-xs text-gray-500">Infants</p>
+        <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-bold text-gray-900">{{ $totalInfants ?? 0 }}</h3>
+            <div class="text-sm font-medium px-2 py-1 rounded-lg bg-green-500 text-white shadow-sm">
+                Infants
             </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">{{ $infantMale ?? 0 }} male • {{ $infantFemale ?? 0 }} female</p>
+    </div>
+</section>
 
-            <div class="bg-white p-4 rounded shadow">
-                <p class="text-xs text-gray-500">This Month — Top Requests</p>
-                <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-bold">{{ $topRequestedMedicines->sum('total_quantity') ?? 0 }}</h3>
-                    <div class="text-sm text-white bg-orange-100 text-orange-700 px-2 py-1 rounded">Requested</div>
-                </div>
-                <p class="text-xs text-gray-400 mt-2">Top 5 medicines (approved)</p>
+
+        @if(isset($insights) && count($insights) > 0)
+<section class="bg-gradient-to-r from-indigo-50 via-white to-pink-50 border border-indigo-100 rounded-xl shadow-sm p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-3 text-gray-800 flex items-center gap-2">
+        🧠 System Insights
+    </h3>
+    <div class="space-y-2">
+        @foreach($insights as $tip)
+            <div class="flex items-start gap-2 bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:shadow-md transition">
+                <span class="text-indigo-500 text-lg">🧩</span>
+                <p class="text-sm text-gray-700">{{ $tip }}</p>
             </div>
-        </section>
+        @endforeach
+    </div>
+</section>
+@endif
 
         <!-- CHARTS GRID -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <!-- Pregnant Age Groups (bar) -->
-            <div class="bg-white rounded shadow p-6">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-semibold">Pregnant Age Distribution</h4>
-                    <small class="text-gray-500">Grouped ages</small>
-                </div>
-                <div class="h-64">
-                    <canvas id="pregnantAgeChart"></canvas>
-                </div>
-            </div>
+           <!-- Pregnant Monthly Check-ins -->
+<div class="bg-white rounded shadow p-6">
+    <div class="flex items-center justify-between mb-3">
+        <h4 class="font-semibold">Pregnant Check-ins Tracker</h4>
+        <small class="text-gray-500">Monthly registrations this year</small>
+    </div>
+
+    <div class="text-center mb-4">
+        <h2 class="text-3xl font-bold text-pink-600">
+            {{ $pregnantsThisMonth }}
+        </h2>
+        <p class="text-gray-500">pregnant women checked in this month</p>
+    </div>
+
+    <div class="h-64">
+        <canvas id="pregnantCheckinChart"></canvas>
+    </div>
+</div>
+
 
             <!-- Infant Gender (doughnut) -->
             <div class="bg-white rounded shadow p-6">
@@ -225,40 +276,55 @@
             </div>
         </section>
 
-        <!-- Top requested medicines + progress -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div class="bg-white rounded shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="font-semibold">Top 5 Requested Medicines (This Month)</h4>
-                    <small class="text-gray-500">Approved requests</small>
-                </div>
+        <!-- TWO-COLUMN: Left = Top requested medicines, Right = Medicine Inventory -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- LEFT: Top requested medicines (spans 2 cols on lg) -->
+            <div class="lg:col-span-2">
+                @if(isset($topMedicinesByPurok) && Auth::user()->usertype === 'admin')
+                <div class="bg-white rounded shadow p-6 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-semibold">Top Requested Medicines by Purok (This Month)</h4>
+                        <small class="text-gray-500">Completed requests</small>
+                    </div>
 
-                <div class="space-y-3">
-                    @forelse($topRequestedMedicines as $item)
-                        @php
-                            $max = max($topRequestedMedicines->pluck('total_quantity')->toArray() ?: [1]);
-                            $pct = $max ? round(($item->total_quantity / $max) * 100) : 0;
-                        @endphp
+                    @if(empty($topMedicinesByPurok) || count($topMedicinesByPurok) === 0)
+                        <div class="text-gray-500">No data available for this month.</div>
+                    @else
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            @foreach($topMedicinesByPurok as $purok => $items)
+                            <div class="bg-gray-50 p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                                <h5 class="font-semibold text-pink-600 mb-3">
+                                    {{ ucfirst(str_replace('purok','Purok ',$purok)) }}
+                                </h5>
 
-                        <div class="flex items-center justify-between">
-                            <div class="w-2/3">
-                                <div class="text-sm font-medium text-gray-700">{{ $item->name }}</div>
-                                <div class="mt-1 bg-gray-100 h-2 rounded overflow-hidden">
-                                    <div class="h-2 rounded" style="width: {{ $pct }}%; background:linear-gradient(90deg,#fb7185,#f97316)"></div>
+                                <div class="space-y-2">
+                                    @foreach($items->take(3) as $item)
+                                        <div class="flex justify-between items-center">
+                                            <div class="text-gray-700 font-medium text-sm">{{ $item->name }}</div>
+                                            <div class="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                                                {{ $item->total_quantity }}
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
+
+                                @if($items->count() > 3)
+                                <div class="text-xs text-gray-400 mt-2 italic">
+                                    +{{ $items->count() - 3 }} more medicines
+                                </div>
+                                @endif
                             </div>
-                            <div class="w-1/3 text-right">
-                                <div class="text-sm font-semibold">{{ $item->total_quantity }}</div>
-                            </div>
+                            @endforeach
                         </div>
-                    @empty
-                        <div class="text-gray-500">No approved requests recorded this month.</div>
-                    @endforelse
+                    @endif
                 </div>
+                @endif
+
+                <!-- You can add other wide content here if needed -->
             </div>
 
-            <!-- keep the medicine inventory table on the right -->
-            <div class="bg-white rounded shadow p-6 overflow-auto">
+            <!-- RIGHT: Medicine inventory -->
+            <aside class="bg-white rounded shadow p-6 overflow-auto">
                 <h4 class="font-semibold mb-4">Medicine Inventory (Sample)</h4>
 
                 <!-- Purok filter -->
@@ -304,133 +370,197 @@
                         </tbody>
                     </table>
                 </div>
-
-            </div>
+            </aside>
         </section>
-         @yield('content')
+
+        @yield('content')
     </main>
 
     <script>
+        // Toggle notifications dropdown and mark as read
+        function toggleNotifMenu() {
+            const menu = document.getElementById('notifMenu');
+            menu.classList.toggle('hidden');
 
-  function toggleNotifMenu(){
-            document.getElementById('notifMenu').classList.toggle('hidden');
+            // If just opened, mark notifications as read
+            if (!menu.classList.contains('hidden')) {
+                fetch("{{ route('notifications.markAllRead') }}")
+                    .then(response => {
+                        if (response.ok) {
+                            const badge = document.querySelector('#notifBtn #notifBadge') || document.querySelector('#notifBtn span');
+                            if (badge) badge.remove();
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Failed to mark notifications read', err);
+                    });
+            }
         }
 
-        // Pass data from Blade to JS
-        const pregnantAgeGroups = @json($pregnantAgeGroups ?? []);
-        const infantMale = Number(@json($infantMale ?? 0));
-        const infantFemale = Number(@json($infantFemale ?? 0));
-        const pregnantsByPurok = @json($pregnantsByPurok ?? []);
-        const infantsByPurok = @json($infantsByPurok ?? []);
-        const topRequestedMedicines = @json($topRequestedMedicines ?? []);
+        // Chart code and data initialization run on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function () {
+            // Pass data from Blade to JS
+            const pregnantAgeGroups = @json($pregnantAgeGroups ?? []);
+            const infantMale = Number(@json($infantMale ?? 0));
+            const infantFemale = Number(@json($infantFemale ?? 0));
+            const pregnantsByPurok = @json($pregnantsByPurok ?? []);
+            const infantsByPurok = @json($infantsByPurok ?? []);
+            const topRequestedMedicines = @json($topRequestedMedicines ?? []);
+            const topMedicinesByPurok = @json($topMedicinesByPurok ?? []);
+            const isUserAdmin = @json(Auth::check() && Auth::user()->usertype === 'useradmin');
 
-        // Pregnant Age Chart
-        (function(){
-            const labels = Object.keys(pregnantAgeGroups);
-            const data = Object.values(pregnantAgeGroups);
+            // Utility: safe get canvas context
+            function getCtx(id) {
+                const el = document.getElementById(id);
+                return el ? el.getContext('2d') : null;
+            }
 
-            const ctx = document.getElementById('pregnantAgeChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Pregnants',
-                        data,
-                        backgroundColor: ['#fb7185','#f97316','#f59e0b','#60a5fa'],
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    plugins: { legend: { display:false } },
-                    scales: {
-                        x: { ticks: { color: '#334155' } },
-                        y: { ticks: { color: '#334155', beginAtZero:true } }
+            // Pregnant Age Chart
+            (function(){
+                const ctx = getCtx('pregnantAgeChart');
+                if(!ctx) return;
+
+                const labels = Object.keys(pregnantAgeGroups);
+                const data = Object.values(pregnantAgeGroups);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Pregnants',
+                            data,
+                            backgroundColor: ['#fb7185','#f97316','#f59e0b','#60a5fa'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive:true,
+                        maintainAspectRatio:false,
+                        plugins: { legend: { display:false } },
+                        scales: {
+                            x: { ticks: { color: '#334155' } },
+                            y: { ticks: { color: '#334155', beginAtZero:true } }
+                        }
                     }
-                }
-            });
-        })();
+                });
+            })();
 
-        // Infant Gender Chart (doughnut)
-        (function(){
-            const ctx = document.getElementById('infantGenderChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Male','Female'],
-                    datasets: [{
-                        data: [infantMale, infantFemale],
-                        backgroundColor: ['#60a5fa','#f973a1']
-                    }]
-                },
-                options: {
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    plugins: { legend: { position:'bottom' } }
-                }
-            });
-        })();
+            // Infant Gender Chart (doughnut)
+            (function(){
+                const ctx = getCtx('infantGenderChart');
+                if(!ctx) return;
 
-        // Pregnants by Purok (bar)
-        (function(){
-            const labels = pregnantsByPurok.map(p => p.purok ?? 'Unknown').map(p => p.replace(/purok/gi, 'Purok '));
-            const data = pregnantsByPurok.map(p => Number(p.total ?? 0));
-
-            const ctx = document.getElementById('pregnantsPurokChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Pregnants',
-                        data,
-                        backgroundColor: labels.map((_,i)=>`rgba(99,102,241, ${0.8 - i*0.04})`),
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    plugins: { legend: { display:false } },
-                    scales: {
-                        x: { ticks: { color:'#334155' } },
-                        y: { ticks: { color:'#334155', beginAtZero:true } }
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Male','Female'],
+                        datasets: [{
+                            data: [infantMale, infantFemale],
+                            backgroundColor: ['#60a5fa','#f973a1']
+                        }]
+                    },
+                    options: {
+                        responsive:true,
+                        maintainAspectRatio:false,
+                        plugins: { legend: { position:'bottom' } }
                     }
-                }
-            });
-        })();
+                });
+            })();
 
-        // Infants by Purok (bar)
-        (function(){
-            const labels = infantsByPurok.map(p => p.purok ?? 'Unknown').map(p => p.replace(/purok/gi, 'Purok '));
-            const data = infantsByPurok.map(p => Number(p.total ?? 0));
+            // Pregnants by Purok (bar)
+            (function(){
+                const ctx = getCtx('pregnantsPurokChart');
+                if(!ctx) return;
 
-            const ctx = document.getElementById('infantsPurokChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Infants',
-                        data,
-                        backgroundColor: labels.map((_,i)=>`rgba(16,185,129, ${0.85 - i*0.03})`),
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    plugins: { legend: { display:false } },
-                    scales: {
-                        x: { ticks: { color:'#334155' } },
-                        y: { ticks: { color:'#334155', beginAtZero:true } }
+                const labels = pregnantsByPurok.map(p => (p.purok ?? 'Unknown').toString().replace(/purok/gi, 'Purok '));
+                const data = pregnantsByPurok.map(p => Number(p.total ?? 0));
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Pregnants',
+                            data,
+                            backgroundColor: labels.map((_,i)=>`rgba(99,102,241, ${Math.max(0.25, 0.85 - i*0.05)})`),
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive:true,
+                        maintainAspectRatio:false,
+                        plugins: { legend: { display:false } },
+                        scales: {
+                            x: { ticks: { color:'#334155' } },
+                            y: { ticks: { color:'#334155', beginAtZero:true } }
+                        }
                     }
-                }
-            });
-        })();
+                });
+            })();
 
+            // Infants by Purok (bar)
+            (function(){
+                const ctx = getCtx('infantsPurokChart');
+                if(!ctx) return;
+
+                const labels = infantsByPurok.map(p => (p.purok ?? 'Unknown').toString().replace(/purok/gi, 'Purok '));
+                const data = infantsByPurok.map(p => Number(p.total ?? 0));
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Infants',
+                            data,
+                            backgroundColor: labels.map((_,i)=>`rgba(16,185,129, ${Math.max(0.25, 0.85 - i*0.03)})`),
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive:true,
+                        maintainAspectRatio:false,
+                        plugins: { legend: { display:false } },
+                        scales: {
+                            x: { ticks: { color:'#334155' } },
+                            y: { ticks: { color:'#334155', beginAtZero:true } }
+                        }
+                    }
+                });
+            })();
+
+        }); // end DOMContentLoaded
+
+        document.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById('pregnantCheckinChart').getContext('2d');
+    const data = @json($pregnantMonthlyCounts ?? []);
+    const labels = Object.keys(data);
+    const values = Object.values(data);
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Pregnant Check-ins',
+                data: values,
+                backgroundColor: '#ec4899',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+});
     </script>
+
 </body>
 </html>

@@ -212,6 +212,14 @@
         @endif
 
         <table class="w-full border-collapse bg-white shadow-lg mb-6">
+            <div class="flex justify-end mb-4">
+    <button 
+        type="button" 
+        id="clearDatesBtn"
+        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+        Clear All Dates
+    </button>
+</div>
             <thead>
                 <tr class="bg-gray-200 text-sm sm:text-base">
                     <th class="p-3 border w-16">Visit</th>
@@ -248,6 +256,22 @@
                 @endforeach
             </tbody>
         </table>
+
+        {{-- ✅ Print Certificate Button --}}
+        @php
+            $allComplete = collect($records)->every(fn($record) => !empty($record->visit_date));
+        @endphp
+
+        @if ($allComplete)
+            <div class="mt-6 flex justify-end">
+                <form action="{{ route('pregnant.certificate', $woman->id) }}" method="GET">
+    <button type="submit"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        🖨️ Download Certificate
+    </button>
+</form>
+            </div>
+        @endif
 
         <!-- Toast Notification -->
         <div id="toast" class="fixed bottom-6 right-6 hidden p-4 rounded-lg shadow-lg text-white font-medium z-50"></div>
@@ -321,6 +345,19 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => toast.classList.add('hidden'), 2500);
     }
 });
+
+document.getElementById('clearDatesBtn').addEventListener('click', function () {
+        const dateInputs = document.querySelectorAll('.visit-date');
+        dateInputs.forEach(input => input.value = '');
+        
+        // Optionally reset the status badges
+        const badges = document.querySelectorAll('.status-badge');
+        badges.forEach(badge => {
+            badge.classList.remove('bg-green-100', 'text-green-800');
+            badge.classList.add('bg-gray-100', 'text-gray-800');
+            badge.innerHTML = '⏳ Not Started';
+        });
+    });
 </script>
 </body>
 </html>

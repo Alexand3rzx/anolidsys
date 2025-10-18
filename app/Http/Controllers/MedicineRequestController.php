@@ -23,13 +23,13 @@ class MedicineRequestController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $userId = auth()->id();
-        $medicineId = $request->medicine_id;
-        $medicineName = Medicine::find($medicineId)->name ?? 'Unknown Medicine';
+        $user = Auth::user();
+        $medicine = Medicine::find($request->medicine_id);
+        $medicineName = $medicine->name ?? 'Unknown Medicine';
 
         // Check for existing pending request
-        $existingRequest = MedicineRequest::where('user_id', $userId)
-            ->where('medicine_id', $medicineId)
+        $existingRequest = MedicineRequest::where('user_id', $user->id)
+            ->where('medicine_id', $medicine->id)
             ->where('status', 'pending')
             ->first();
 
@@ -37,24 +37,28 @@ class MedicineRequestController extends Controller
             $existingRequest->quantity += $request->quantity;
             $existingRequest->save();
 
+            // Notify admin of update
             Notification::create([
-                'user_id' => $userId,
-                'message' => Auth::user()->purok . " updated a pending request for {$medicineName}.",
+                'user_id' => $user->id,
+                'target_role' => 'admin',
+                'message' => "Purok {$user->purok} updated a pending request for {$medicineName}.",
             ]);
 
             return back()->with('success', 'Updated existing pending request.');
         }
 
         MedicineRequest::create([
-            'user_id' => $userId,
-            'medicine_id' => $medicineId,
+            'user_id' => $user->id,
+            'medicine_id' => $medicine->id,
             'quantity' => $request->quantity,
             'status' => 'pending',
         ]);
 
+        // Notify admin of new request
         Notification::create([
-            'user_id' => $userId,
-            'message' => Auth::user()->purok . " requested medicine: {$medicineName}.",
+            'user_id' => $user->id,
+            'target_role' => 'admin',
+            'message' => "Purok {$user->purok} requested medicine: {$medicineName}.",
         ]);
 
         return back()->with('success', 'Medicine request sent successfully.');
@@ -84,8 +88,10 @@ class MedicineRequestController extends Controller
             'pickup_date' => $request->pickup_date,
         ]);
 
+        // Notify useradmin of approval
         Notification::create([
             'user_id' => $medRequest->user_id,
+            'target_role' => 'useradmin',
             'message' => "Your request for {$medicine->name} is approved. 
                           Pickup on {$request->pickup_date} with code: {$pickupCode}.",
         ]);
@@ -135,8 +141,10 @@ class MedicineRequestController extends Controller
             'completed_at' => Carbon::now(),
         ]);
 
+        // Notify useradmin that it's completed
         Notification::create([
             'user_id' => $medRequest->user_id,
+            'target_role' => 'useradmin',
             'message' => "Your medicine request for {$medicine->name} is completed and added to Purok {$user->purok}.",
         ]);
 
@@ -153,6 +161,7 @@ class MedicineRequestController extends Controller
 
         Notification::create([
             'user_id' => $req->user_id,
+            'target_role' => 'useradmin',
             'message' => "Your medicine request for {$req->medicine->name} was rejected.",
         ]);
 

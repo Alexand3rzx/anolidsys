@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Beneficiary;
 use App\Models\Pregnant;
 use App\Models\Infant;
+use Illuminate\Support\Facades\DB;
 
 class BeneficiaryController extends Controller
 {
@@ -54,33 +55,47 @@ class BeneficiaryController extends Controller
     /**
      * AJAX Search Pregnant
      */
-    public function searchPregnant(Request $request)
-    {
-        $query = $request->input('query');
+   public function searchPregnant(Request $request)
+{
+    $query = $request->get('query');
+    $purok = $request->get('purok');
 
-        $pregnantWomen = Pregnant::where(function ($q) use ($query) {
-            $q->where('prgname', 'LIKE', "%{$query}%")
-              ->orWhere('prgage', 'LIKE', "%{$query}%")
-              ->orWhere('prgaddress', 'LIKE', "%{$query}%");
-        })->get();
+    $pregnants = Pregnant::when($query, function($q) use ($query) {
+            $q->where('prgname', 'like', "%{$query}%");
+        })
+        ->when($purok, function($q) use ($purok) {
+            $q->where('purok', $purok);
+        })
+        ->orderBy('prgname')
+        ->limit(10)
+        ->get();
 
-        return response()->json($pregnantWomen);
-    }
+    return response()->json($pregnants);
+}
 
     /**
      * AJAX Search Infant
      */
-    public function searchInfant(Request $request)
-    {
-        $query = $request->input('query');
+public function searchInfant(Request $request)
+{
+    $query = $request->input('query');
+    $purok = $request->input('purok');
 
-        $infants = Infant::where(function ($q) use ($query) {
-            $q->where('child_name', 'LIKE', "%{$query}%")
-              ->orWhere('child_gender', 'LIKE', "%{$query}%")
-              ->orWhere('child_mother', 'LIKE', "%{$query}%")
-              ->orWhere('child_father', 'LIKE', "%{$query}%");
-        })->get();
+    $infants = DB::table('infants')
+        ->when($query, function ($q) use ($query) {
+            $q->where(function ($sub) use ($query) {
+                $sub->where('child_name', 'like', "%{$query}%")
+                    ->orWhere('child_mother', 'like', "%{$query}%")
+                    ->orWhere('child_father', 'like', "%{$query}%")
+                    ->orWhere('child_gender', 'like', "%{$query}%");
+            });
+        })
+        ->when($purok, function ($q) use ($purok) {
+            $q->where('purok', $purok);
+        })
+        ->orderBy('child_name', 'asc')
+        ->get();
 
-        return response()->json($infants);
-    }
+    return response()->json($infants);
+}
 }

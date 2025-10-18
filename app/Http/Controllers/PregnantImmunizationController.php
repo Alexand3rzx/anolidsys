@@ -68,4 +68,25 @@ class PregnantImmunizationController extends Controller
 
         return back()->with('success', 'Immunization record deleted successfully!');
     }
+    
+    public function generateCertificate($id)
+{
+    $pregnant = Pregnant::findOrFail($id);
+
+    if ($pregnant->prgtimes == 1) {
+        $records = \App\Models\FirstPregnancyImmunization::where('pregnant_id', $pregnant->id)->get();
+    } elseif ($pregnant->prgtimes >= 2 && $pregnant->prgtimes <= 5) {
+        $records = \App\Models\SecondToFifthPregnancyImmunization::where('pregnant_id', $pregnant->id)->get();
+    } else {
+        $records = \App\Models\SixthPregnancyImmunization::where('pregnant_id', $pregnant->id)->get();
+    }
+
+    $allComplete = $records->every(fn($record) => !empty($record->visit_date));
+
+    if (!$allComplete) {
+        return back()->with('error', 'All immunizations must be completed before generating a certificate.');
+    }
+
+    return view('certificates.pregnant_certificate', compact('pregnant'));
+}
 }

@@ -13,16 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('beneficiaries', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->string('password_plain')->nullable();
-            $table->string('usertype')->default('user');
-             $table->string('purok');
-            $table->rememberToken();
+            $table->enum('category', ['Pregnant', 'Infant']);
+            $table->date('birthday');
+            $table->integer('age');
+            $table->integer('months_pregnant')->nullable();
+            $table->date('due_date')->nullable();
+            $table->float('weight')->nullable();
+            $table->float('height')->nullable();
             $table->timestamps();
         });
     }
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('beneficiaries');
     }
 };

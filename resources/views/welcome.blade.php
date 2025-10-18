@@ -4,159 +4,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Management System</title>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #9c27b0, #4caf50); /* Purple to Green Gradient */
-            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            background: #fff;
+            color: #333;
+        }
+        .navbar {
+            padding: 1rem 2rem;
+            background-color: white;
+            border-bottom: 1px solid #eee;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            overflow: hidden;
         }
-
-        .header {
-            text-align: center;
-            background: url('{{ asset('images/hahaa.jpg') }}') no-repeat center center;
-            background-size: cover;
-            width: 100%;
-            padding: 50px 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            color: white;
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            margin-top: 10px;
-            color: white;
-        }
-
-        .description {
-            margin: 20px auto;
-            font-size: 1rem;
-            text-align: center;
-            max-width: 800px;
-            line-height: 1.6;
-        }
-
-        .box {
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            color: white;
-            background: linear-gradient(135deg, #4caf50, #8bc34a); /* Green Gradient */
-        }
-
-        .box img {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 15px;
-        }
-
-        .auth-links {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .auth-links a {
-            color: white;
-            background-color: #4caf50;
-            padding: 10px 20px;
-            margin: 0 10px;
+        .navbar a {
+            color: #333;
+            margin-left: 20px;
             text-decoration: none;
+            font-weight: 500;
+        }
+        .navbar .btn-login {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 8px 18px;
             border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .navbar .btn-login:hover {
+            background-color: #5a2d0c;
+        }
+        .main-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            padding: 3rem 5%;
+            min-height: calc(100vh - 80px);
+        }
+        .text-column {
+            flex: 1 1 50%;
+            max-width: 600px;
+        }
+        .text-column h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #cc0000;
+        }
+        .text-column p {
             font-size: 1.1rem;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
         }
-
-        .auth-links a:hover {
-            background-color: #45a049;
+        .btn-start {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
-
-        /* Different Gradient for each Box */
-        .box-1 {
-            background: linear-gradient(135deg, #f44336, #ff5722); /* Red to Orange */
+        .btn-start:hover {
+            background-color: #5a2d0c;
         }
-
-        .box-2 {
-            background: linear-gradient(135deg, #2196f3, #03a9f4); /* Blue */
+        .image-column {
+            flex: 1 1 40%;
+            text-align: center;
         }
+        .image-column img {
+            max-width: 100%;
+            height: auto;
+        }
+        /* About Section */
+        .about-section {
+    padding: 60px 20px;
+    background-color: #f9f9f9;
+    text-align: center;
+}
 
-        .box-3 {
-            background: linear-gradient(135deg, #ff9800, #ffeb3b); /* Yellow to Orange */
+.about-section h2 {
+    font-size: 28px;
+    margin-bottom: 40px;
+    font-weight: bold;
+    color: #333;
+}
+
+.about-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.about-image img {
+    width: 250px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.about-text {
+    max-width: 400px;
+    text-align: justify;
+    font-size: 16px;
+    line-height: 1.6;
+}
+        /* Contact Section */
+        .contact-section {
+            background-color: #cc0000;
+            color: white;
+            padding: 40px 5%;
+            text-align: center;
+        }
+        .contact-section h4 {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .contact-item {
+            margin: 10px 0;
+        }
+        @media (max-width: 768px) {
+            .main-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            .text-column, .image-column, .about-text {
+                flex: 1 1 100%;
+            }
+            .text-column h1 {
+                font-size: 2rem;
+            }
+            .about-content {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>Health Management System</h1>
-        <p>Brgy. Anolid, Mangaldan, Pangasinan</p>
-    </header>
 
-    <section class="description">
-        <p>
-            Welcome to the Health Management System. This platform is designed to efficiently manage and monitor health-related activities and services in our community.
-        </p>
-    </section>
-
-    <!-- Three Health Boxes with Different Gradients -->
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="box box-1">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons/health.svg" alt="Health Icon">
-                    <h3>Health Monitoring</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis magna vitae leo egestas.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="box box-2">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons/heart.svg" alt="Health Icon">
-                    <h3>Medical Assistance</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis magna vitae leo egestas.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="box box-3">
-                    <img src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons/medkit.svg" alt="Health Icon">
-                    <h3>Health Tips</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla convallis magna vitae leo egestas.</p>
-                </div>
-            </div>
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="logo">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo" style="height: 50px;">
+        </div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#about">About</a>
+            @if (Route::has('login'))
+                @auth
+                    <a class="btn btn-login" href="{{ url('/home') }}">Dashboard</a>
+                @else
+                    <a class="btn btn-login" href="{{ route('login') }}">Login</a>
+                @endauth
+            @endif
         </div>
     </div>
 
-    <!-- Authentication Links -->
-    <div class="auth-links">
-        @if (Route::has('login'))
-            <div>
-                @auth
-                    <a href="{{ url('/home') }}">Dashboard</a>
-                @else
-                    <a href="{{ route('login') }}">Log in</a>
-                    @if (Route::has('register'))
-                        <!-- Add Register Link if necessary -->
-                    @endif
-                @endauth
-            </div>
-        @endif
-    </div>
+    <!-- Main Content -->
+    <section class="main-section">
+        <div class="text-column">
+            <h1>Welcome to the Barangay Anolid Health System</h1>
+            <p>
+                This platform helps manage health records, track beneficiaries, monitor pregnant women and infants, and streamline healthcare services within our community.
+            </p>
+        </div>
+        <div class="image-column">
+            <img src="{{ asset('images/logo.png') }}" alt="Health Illustration">
+        </div>
+    </section>
 
-    <!-- Bootstrap JS (optional for some interactions) -->
+    <!-- About Us Section -->
+<section id="about" class="about-section">
+    <h2>ABOUT US: THE BARANGAY HEALTH WORKERS OF ANOLID</h2>
+    <div class="about-content">
+        <!-- Left Image -->
+        <div class="about-image">
+            <img src="{{ asset('images/about1.jpg') }}" alt="Barangay Event 1">
+        </div>
+
+        <!-- Center Text -->
+        <div class="about-text">
+            <p>Barangay Anolid is 1 of the 30 barangays located in Mangaldan, Pangasinan. With a total land area of 226.42 sq. hectares, it is the largest barangay in Mangaldan, housing an estimated 8,700 residents.</p>
+            <p>The Barangay Health Workers (BHWs) are located at the center of Anolid, serving health services to assist residents with their health needs by providing medicine, check-ups, and monitoring.</p>
+        </div>
+
+        <!-- Right Image -->
+        <div class="about-image">
+            <img src="{{ asset('images/about2.jpg') }}" alt="Barangay Event 2">
+        </div>
+    </div>
+</section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <h4>CONTACT US</h4>
+        <div class="contact-item">📞 Phone: 0963 879 4967 | (075) 633 4068</div>
+        <div class="contact-item">📧 Email: barangayanolid@gmail.com</div>
+        <div class="contact-item">📘 Facebook: Sangguniang Barangay ng Anolid, Mangaldan, Pangasinan 2023-2025</div>
+    </section>
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

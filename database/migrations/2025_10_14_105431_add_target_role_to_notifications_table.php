@@ -11,19 +11,12 @@ return new class extends Migration
      *
      * @return void
      */
-    public function up()
+   public function up()
 {
-    Schema::create('medicines', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->text('details');
-        $table->integer('stock')->default(0);
-        $table->string('purok');
-        $table->string('expiration');
-        $table->timestamps();
+    Schema::table('notifications', function (Blueprint $table) {
+        $table->string('target_role')->default('useradmin'); // can be 'admin' or 'useradmin'
     });
 }
-
 
     /**
      * Reverse the migrations.
@@ -32,6 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('medicines');
+        Schema::table('notifications', function (Blueprint $table) {
+            //
+        });
     }
 };

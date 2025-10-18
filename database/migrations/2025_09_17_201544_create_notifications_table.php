@@ -13,17 +13,16 @@ return new class extends Migration
      */
     public function up()
 {
-    Schema::create('medicines', function (Blueprint $table) {
+    Schema::create('notifications', function (Blueprint $table) {
         $table->id();
-        $table->string('name');
-        $table->text('details');
-        $table->integer('stock')->default(0);
-        $table->string('purok');
-        $table->string('expiration');
+        $table->unsignedBigInteger('user_id'); // who triggered it (useradmin)
+        $table->string('message'); // e.g. "Purok 3 requested Biogesic"
+        $table->boolean('is_read')->default(false);
         $table->timestamps();
+
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
     });
 }
-
 
     /**
      * Reverse the migrations.
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('medicines');
+        Schema::dropIfExists('notifications');
     }
 };

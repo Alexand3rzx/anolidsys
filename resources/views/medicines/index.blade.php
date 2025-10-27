@@ -124,6 +124,25 @@
                             </button>
                         </form>
 
+                        <!-- Batch Filter Dropdown (Admin only) -->
+@if(Auth::check() && Auth::user()->usertype === 'admin')
+    <form method="GET" action="{{ route('medicines.index') }}" class="flex items-center space-x-2 mb-4">
+        <!-- Preserve existing filters when changing batch -->
+        <input type="hidden" name="search" value="{{ request('search') }}">
+        <input type="hidden" name="purok" value="{{ request('purok') }}">
+
+        <label for="batch" class="text-gray-700 font-semibold">Batch:</label>
+        <select name="batch" id="batch" onchange="this.form.submit()"
+            class="px-3 py-2 border rounded-lg bg-gray-50 text-gray-700">
+            <option value="">All Batches</option>
+            @foreach($batches as $batch)
+                <option value="{{ $batch->id }}" {{ request('batch') == $batch->id ? 'selected' : '' }}>
+                    Batch {{ $batch->batch_number }}
+                </option>
+            @endforeach
+        </select>
+    </form>
+@endif
                         <!-- Purok Filter (Admin only) -->
                         @if(Auth::check() && Auth::user()->usertype === 'admin')
                             <form method="GET" action="{{ route('medicines.index') }}">
@@ -342,41 +361,78 @@
     </main>
 </div>
 
-        <!-- Receive Modal -->
-    <div id="receiveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
-        <div class="bg-white p-6 rounded-lg w-1/3">
-            <h3 class="text-xl font-bold mb-4">Receive Medicine</h3>
-            <form id="receiveForm" method="POST">
-                @csrf
-                <input type="hidden" name="medicine_id" id="receiveMedicineId">
-                <div class="mb-4">
-                    <label class="block text-gray-700">Medicine Name</label>
-                    <input type="text" id="receiveMedicineName" class="w-full p-2 border rounded" readonly>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Quantity</label>
-                    <input type="number" name="quantity" class="w-full p-2 border rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Donated By:</label>
-                    <input type="text" name="donor" class="w-full p-2 border rounded" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Received By:</label>
-                    <input type="text" name="receiver" class="w-full p-2 border rounded bg-gray-200" value="{{ Auth::user()->name }}" readonly>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700">Additional Details</label>
-                    <textarea name="details" class="w-full p-2 border rounded"></textarea>
-                </div>
-                <div class="flex justify-end">
-                    <button type="button" onclick="closeReceiveModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
-                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
+<!-- Receive Medicine Modal -->
+<div id="receiveMedicineModal" tabindex="-1" aria-hidden="true"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">Receive Medicine</h2>
+
+        <form id="receiveMedicineForm" method="POST">
+            @csrf
+
+            <!-- Hidden Medicine ID -->
+            <input type="hidden" name="medicine_id" id="receiveMedicineId">
+
+            <!-- Medicine Name -->
+            <div class="mb-4">
+                <label for="receiveMedicineName" class="block text-sm font-medium text-gray-700">Medicine Name</label>
+                <input type="text" id="receiveMedicineName" class="w-full border rounded-lg px-3 py-2" readonly>
+            </div>
+
+            <!-- Quantity -->
+            <div class="mb-4">
+                <label for="receiveQuantity" class="block text-sm font-medium text-gray-700">Quantity Received</label>
+                <input type="number" id="receiveQuantity" name="quantity" class="w-full border rounded-lg px-3 py-2"
+                    min="1" required>
+            </div>
+
+            <!-- Donor -->
+            <div class="mb-4">
+                <label for="receiveDonor" class="block text-sm font-medium text-gray-700">Donor</label>
+                <input type="text" id="receiveDonor" name="donor" class="w-full border rounded-lg px-3 py-2" required>
+            </div>
+
+            <!-- Expiration (optional) -->
+            <div class="mb-4">
+                <label for="receiveExpiration" class="block text-sm font-medium text-gray-700">
+                    Expiration Date (optional)
+                </label>
+                <input type="date" id="receiveExpiration" name="expiration"
+                    class="w-full border rounded-lg px-3 py-2">
+                <p class="text-xs text-gray-500 mt-1">Leave blank to add to current expiration batch.</p>
+            </div>
+
+            <!-- Batch Number (optional, only when different expiration) -->
+            <div class="mb-4">
+                <label for="receiveBatch" class="block text-sm font-medium text-gray-700">
+                    Batch Number (optional)
+                </label>
+                <input type="text" id="receiveBatch" name="batch_number" class="w-full border rounded-lg px-3 py-2"
+                    placeholder="Auto-generated if left blank">
+            </div>
+
+            <!-- Details -->
+            <div class="mb-4">
+                <label for="receiveDetails" class="block text-sm font-medium text-gray-700">Details (optional)</label>
+                <textarea id="receiveDetails" name="details" rows="2"
+                    class="w-full border rounded-lg px-3 py-2"></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeReceiveModal()"
+                    class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    Receive
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
     <!-- Give Modal -->
     <div id="giveModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center">
         <div class="bg-white p-6 rounded-lg w-1/3">
@@ -538,30 +594,83 @@
         });
     });
     
+function openReceiveModal(medicineId, medicineName) {
+    // Fill modal fields
+    document.getElementById('receiveMedicineId').value = medicineId;
+    document.getElementById('receiveMedicineName').value = medicineName;
 
-        function openReceiveModal(medicineId, medicineName) {
-        document.getElementById('receiveMedicineId').value = medicineId;
-        document.getElementById('receiveMedicineName').value = medicineName;
+    // Set form action dynamically
+    const form = document.getElementById('receiveMedicineForm');
+    form.action = `/medicines/${medicineId}/receive`;
 
-        const form = document.getElementById('receiveForm');
-        form.action = `/medicines/${medicineId}/receive`;  
+    // Show modal
+    document.getElementById('receiveMedicineModal').classList.remove('hidden');
+}
 
-        document.getElementById('receiveModal').classList.remove('hidden');
+function closeReceiveModal() {
+    document.getElementById('receiveMedicineModal').classList.add('hidden');
+    document.getElementById('receiveMedicineForm').reset();
+}
+
+// Optional: close modal when clicking outside
+window.addEventListener('click', function (e) {
+    const modal = document.getElementById('receiveMedicineModal');
+    if (e.target === modal) {
+        closeReceiveModal();
     }
-
-        function closeReceiveModal() {
-            document.getElementById('receiveModal').classList.add('hidden');
-        }
+});
 
         function openGiveModal(medicineId, medicineName) {
-        document.getElementById('giveMedicineId').value = medicineId;
-        document.getElementById('giveMedicineName').value = medicineName;
+    const modal = document.getElementById('giveModal');
+    modal.classList.remove('hidden');
+    document.getElementById('giveMedicineId').value = medicineId;
+    document.getElementById('giveMedicineName').value = medicineName;
 
-        const form = document.getElementById('giveForm');
-        form.action = `/medicines/${medicineId}/give`;  
+    // Fetch available stock via API
+    fetch(`/medicines/${medicineId}/stock`)
+        .then(response => response.json())
+        .then(data => {
+            const stock = data.stock;
+            const quantityInput = modal.querySelector('input[name="quantity"]');
+            quantityInput.max = stock;
+            quantityInput.dataset.stock = stock;
 
-        document.getElementById('giveModal').classList.remove('hidden');
+            // Add or reset warning message
+            let warning = document.getElementById('quantityWarning');
+            if (!warning) {
+                warning = document.createElement('p');
+                warning.id = 'quantityWarning';
+                warning.className = 'text-red-500 text-sm mt-1 hidden';
+                quantityInput.parentNode.appendChild(warning);
+            }
+
+            warning.textContent = '';
+            warning.classList.add('hidden');
+            quantityInput.value = '';
+        });
+}
+
+// Live validation
+document.addEventListener('input', function (e) {
+    if (e.target.name === 'quantity') {
+        const input = e.target;
+        const maxStock = parseInt(input.dataset.stock || 0);
+        const warning = document.getElementById('quantityWarning');
+        const submitButton = document.querySelector('#giveForm button[type="submit"]');
+
+        if (parseInt(input.value) > maxStock) {
+            warning.textContent = `⚠️ Quantity exceeds available stock (${maxStock}).`;
+            warning.classList.remove('hidden');
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            warning.textContent = '';
+            warning.classList.add('hidden');
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
     }
+});
 
 
         function closeGiveModal() {

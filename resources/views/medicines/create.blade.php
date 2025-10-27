@@ -85,6 +85,37 @@
                     <input type="number" id="stock" name="stock" value="{{ old('stock') }}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
                 </div>
 
+               <!-- Batch Selection -->
+<div class="mb-4">
+    <label for="batch_option" class="block text-sm font-medium text-gray-700">Batch</label>
+    
+    <select id="batch_option" name="batch_option" 
+        class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+        <option value="existing">Select Existing Batch</option>
+        <option value="new">Create New Batch</option>
+    </select>
+
+    <!-- Existing Batch Dropdown -->
+    <div id="existingBatchDiv" class="mt-3">
+        <label for="batch_id" class="block text-sm font-medium text-gray-700">Select Batch</label>
+        <select id="batch_id" name="batch_id" 
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+            <option value="">-- No Batch --</option>
+            @foreach ($batches as $batch)
+                <option value="{{ $batch->id }}">Batch #{{ $batch->batch_number }}</option>
+            @endforeach
+        </select>
+    </div>
+
+    <!-- New Batch Input -->
+    <div id="newBatchDiv" class="mt-3 hidden">
+        <label for="batch_number" class="block text-sm font-medium text-gray-700">New Batch Number</label>
+        <input type="text" id="batch_number" name="batch_number" 
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md" 
+            placeholder="e.g. Batch 7">
+    </div>
+</div>
+
                 <!-- Expiration Date Field -->
                 <div class="mb-4">
                     <label for="expiration" class="block text-sm font-medium text-gray-700">Expiration Date</label>
@@ -97,5 +128,20 @@
             </form>
         </div>
     </main>
+<script>
+document.getElementById('batch_option').addEventListener('change', function() {
+    const existingDiv = document.getElementById('existingBatchDiv');
+    const newDiv = document.getElementById('newBatchDiv');
+
+    if (this.value === 'new') {
+        existingDiv.classList.add('hidden');
+        newDiv.classList.remove('hidden');
+    } else {
+        existingDiv.classList.remove('hidden');
+        newDiv.classList.add('hidden');
+    }
+});
+</script>
+    
 </body>
 </html>

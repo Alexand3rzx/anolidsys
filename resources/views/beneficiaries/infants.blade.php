@@ -74,22 +74,23 @@
                         <option value="purok7">Purok 7</option>
                     </select>
 
-                    <!-- Import/Template Buttons -->
-                    <form method="POST" action="{{ route('infants.import') }}" enctype="multipart/form-data" class="inline">
-                        @csrf
-                        <label class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
-                            Import CSV
-                            <input type="file" name="csv_file" accept=".csv" class="hidden" onchange="this.form.submit()">
-                        </label>
-                    </form>
+                   <!-- Import/Template Buttons -->
+<form method="POST" action="{{ route('infants.import') }}" enctype="multipart/form-data" class="inline" id="importForm">
+    @csrf
+    <label class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer">
+        Import CSV
+        <input type="file" name="csv_file" accept=".csv" class="hidden" onchange="confirmImport(this)">
+    </label>
+</form>
 
-                    <a href="{{ route('infants.template') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Download Template
-                    </a>
+<a href="{{ route('infants.downloadTemplate') }}" 
+   class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+   Download CSV Template
+</a>
 
-                    <button onclick="openInfantModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                        + Add Infant
-                    </button>
+<button onclick="openInfantModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+    + Add Infant
+</button>
                 </div>
             </div>
 
@@ -98,7 +99,11 @@
                     <div onclick="window.location='{{ route('infant.show', $infant->id) }}'"
                          class="p-5 flex justify-between items-center hover:bg-red-50 cursor-pointer">
                         <div>
-                            <p class="text-lg font-semibold text-gray-800">{{ $infant->child_name }}</p>
+                            
+                            <p class="text-lg font-semibold text-gray-800">
+    {{ $infant->child_name }}
+    <span class="text-sm text-gray-500 ml-2">({{ $infant->infant_code }})</span>
+</p>
                             <p class="text-sm text-gray-500">{{ ucfirst(str_replace('purok', 'Purok ', $infant->purok)) }}</p>
                             <p class="text-sm text-gray-500">Gender: {{ $infant->child_gender }}</p>
                             <p class="text-sm text-gray-500">Mother: {{ $infant->child_mother }} • Father: {{ $infant->child_father }}</p>
@@ -178,7 +183,8 @@ $(document).ready(function(){
                         $('#infantList').append(
                             '<div onclick="window.location=\'/infants/'+inf.id+'\'" class="p-5 flex justify-between items-center hover:bg-red-50 cursor-pointer">'+
                                 '<div>'+
-                                    '<p class="text-lg font-semibold text-gray-800">'+inf.child_name+'</p>'+
+                                    '<p class="text-lg font-semibold text-gray-800">'+inf.child_name+
+' <span class="text-sm text-gray-500 ml-2">('+inf.infant_code+')</span></p>'+
                                     '<p class="text-sm text-gray-500">'+inf.purok.replace("purok", "Purok ")+'</p>'+
                                     '<p class="text-sm text-gray-500">Gender: '+inf.child_gender+'</p>'+
                                     '<p class="text-sm text-gray-500">Mother: '+inf.child_mother+' • Father: '+inf.child_father+'</p>'+
@@ -197,6 +203,19 @@ $(document).ready(function(){
     $('#searchInfant').on('keyup', filterInfants);
     $('#filterPurok').on('change', filterInfants);
 });
+
+function confirmImport(input) {
+    if (!input.files.length) return; // no file selected
+
+    const fileName = input.files[0].name;
+    const confirmation = confirm(`Are you sure you want to import the file: "${fileName}"?\nThis will add new infants from the CSV.`);
+
+    if (confirmation) {
+        input.form.submit();
+    } else {
+        input.value = ''; // reset the file input
+    }
+}
 </script>
 
 </body>

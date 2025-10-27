@@ -87,7 +87,8 @@ public function searchInfant(Request $request)
                 $sub->where('child_name', 'like', "%{$query}%")
                     ->orWhere('child_mother', 'like', "%{$query}%")
                     ->orWhere('child_father', 'like', "%{$query}%")
-                    ->orWhere('child_gender', 'like', "%{$query}%");
+                    ->orWhere('child_gender', 'like', "%{$query}%")
+                    ->orWhere('infant_code', 'like', "%{$query}%"); // ✅ Added this line
             });
         })
         ->when($purok, function ($q) use ($purok) {

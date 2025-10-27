@@ -70,6 +70,13 @@ Route::middleware(['auth'])->group(function () {
     // Medicine resource routes
     Route::resource('medicines', MedicineController::class);
 
+    Route::get('/medicines/{id}/stock', function($id) {
+    $medicine = \App\Models\Medicine::findOrFail($id);
+    return response()->json(['stock' => $medicine->stock]);
+});
+
+    Route::get('/medicines/{id}/batches', [MedicineController::class, 'getBatches']);
+
     Route::post('/medicines/{medicine}/receive', [MedicineController::class, 'receive'])
         ->name('medicines.receive');
     Route::post('/medicines/{medicine}/give', [MedicineController::class, 'give'])
@@ -111,12 +118,21 @@ Route::put('/pregnant/{id}', [PregnantController::class, 'update'])->name('pregn
 Route::delete('/pregnant/{id}', [PregnantController::class, 'destroy'])->name('pregnant.destroy');
 
 
+
 //prgimmnzts
 Route::post('/pregnant/{id}/add-immunization', [PregnantController::class, 'addImmunization'])->name('pregnant.addImmunization');
+Route::post('/pregnant/{id}/save-completed-record', [PregnantController::class, 'saveCompletedRecord'])
+    ->name('pregnant.saveCompletedRecord');
+
+Route::get('/pregnant/{id}/completed/{recordId}', [PregnantController::class, 'viewCompletedRecord'])
+    ->name('pregnant.viewCompletedRecord');
 
 
 // Resource routes for infants
 Route::resource('infants', InfantController::class)->except(['show']);
+
+Route::get('/infants/template/download', [InfantController::class, 'downloadTemplate'])
+    ->name('infants.downloadTemplate');
 
 // Store a new infant
 Route::post('/infants', [InfantController::class, 'store'])->name('infants.store');

@@ -54,6 +54,12 @@
     <!-- Main Content -->
     <main class="flex-grow p-6 overflow-y-auto">
         <h2 class="text-3xl font-bold mb-6">Edit Infant</h2>
+        <p class="text-gray-700 mb-6">
+    <span class="font-semibold">Infant Code:</span> 
+    <span class="text-blue-700 font-mono bg-blue-100 px-2 py-1 rounded">
+        {{ $infant->infant_code }}
+    </span>
+</p>
 
         <form action="{{ route('infants.update', $infant->id) }}" method="POST" class="bg-white shadow-md rounded-lg p-6">
             @csrf

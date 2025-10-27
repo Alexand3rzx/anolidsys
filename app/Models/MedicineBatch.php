@@ -5,23 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Medicine extends Model
+class MedicineBatch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'details', 'stock', 'expiration', 'purok'];
+    protected $fillable = ['batch_number', 'stock', 'expiration'];
 
-    // Many-to-many relationship with batches
-   public function batches()
+    // Many-to-many relationship with medicines
+    public function medicines()
     {
         return $this->belongsToMany(
-            MedicineBatch::class,
+            Medicine::class,
             'medicine_batch_medicine',   // pivot table name
-            'medicine_id',               // foreign key for this model
-            'batch_id'                   // foreign key for the related model
+            'batch_id',                  // foreign key for this model
+            'medicine_id'                // foreign key for the related model
         )->withTimestamps();
     }
-
     public function transactions()
     {
         return $this->hasMany(MedicineTransaction::class);

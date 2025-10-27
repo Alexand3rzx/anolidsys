@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pregnant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CompletedImmunizationRecord;
 use PDF;
 
 class PregnantController extends Controller
@@ -125,11 +126,11 @@ public function downloadTemplate()
     }
 
     // Update the record
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
 {
     $pregnantWoman = Pregnant::findOrFail($id);
 
-    // --- Validate main fields
+    // --- Validate all fields (main + immunization + photo)
     $request->validate([
         'prgname' => 'required|string|max:255',
         'prgage' => 'required|integer',
@@ -147,20 +148,40 @@ public function downloadTemplate()
         'partner_number' => 'nullable|string|max:15',
         'prgtimes' => 'required|integer|min:1',
 
-        // --- Immunization input fields
+        // Immunization input fields
         'visit_number' => 'nullable|string|max:50',
         'visit_date' => 'nullable|date',
         'expected_month' => 'nullable|string|max:50',
         'vaccine_given' => 'nullable|string|max:255',
         'remarks' => 'nullable|string|max:255',
+
+        // Photo field
+        'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
-    // --- Update main pregnant record
-    $pregnantWoman->update($request->only([
+    // --- Prepare main data
+    $data = $request->only([
         'prgname', 'prgage', 'prgbday', 'prgaddress','purok', 'prgoccupation',
         'prgreligion', 'prgmother_name', 'partner_name', 'partner_age',
-        'partner_bday', 'partner_occupation', 'partner_religion', 'partner_number', 'prgtimes'
-    ]));
+        'partner_bday', 'partner_occupation', 'partner_religion', 
+        'partner_number', 'prgtimes'
+    ]);
+
+    // ✅ Handle uploaded photo
+    if ($request->hasFile('photo')) {
+        $photoName = time() . '_' . $request->file('photo')->getClientOriginalName();
+        $request->file('photo')->storeAs('public/pregnants', $photoName);
+
+        // Delete old photo if exists
+        if ($pregnantWoman->photo && \Storage::exists('public/pregnants/' . $pregnantWoman->photo)) {
+            \Storage::delete('public/pregnants/' . $pregnantWoman->photo);
+        }
+
+        $data['photo'] = $photoName;
+    }
+
+    // --- Update main pregnant record
+    $pregnantWoman->update($data);
 
     // --- If immunization data provided, update or create
     if ($request->filled('visit_date') && $request->filled('vaccine_given')) {
@@ -182,7 +203,7 @@ public function downloadTemplate()
         }
     }
 
-    return back()->with('success', 'Pregnant record and immunization data updated successfully!');
+    return back()->with('success', 'Pregnant record, photo, and immunization data updated successfully!');
 }
 
 
@@ -281,4 +302,46 @@ public function certificate($id)
 
     return $pdf->download($filename);
 }
+
+public function saveCompletedRecord($id)
+{
+    $woman = Pregnant::findOrFail($id);
+
+    // Determine which immunization table applies
+    if ($woman->prgtimes == 1) {
+        $records = $woman->firstPregnancyRecords;
+    } elseif ($woman->prgtimes >= 2 && $woman->prgtimes <= 5) {
+        $records = $woman->secondToFifthPregnancyRecords;
+    } else {
+        $records = $woman->sixthPregnancyRecords;
+    }
+
+    if (!$records || $records->isEmpty()) {
+        return back()->with('error', 'No immunization records found to save.');
+    }
+
+    // Save to completed records table
+    $completed = \App\Models\CompletedImmunizationRecord::create([
+        'pregnant_id' => $woman->id,
+        'records' => $records->toJson(),
+    ]);
+
+    return back()->with('success', 'Completed immunization record saved successfully!');
+}
+
+
+public function viewCompletedRecord($id, $recordId)
+{
+    $woman = Pregnant::findOrFail($id);
+    $record = \App\Models\CompletedImmunizationRecord::findOrFail($recordId);
+    $records = json_decode($record->records);
+
+    return response()->json([
+        'woman_name' => $woman->prgname,
+        'completed_at' => $record->created_at->format('F d, Y'),
+        'records' => $records
+    ]);
+}
+
+
 }

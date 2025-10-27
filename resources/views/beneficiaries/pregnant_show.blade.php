@@ -65,12 +65,57 @@
         <h2 class="text-3xl font-bold mb-6">Edit Pregnant Woman Record</h2>
 
         <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-            <form action="{{ route('pregnant.update', $woman->id) }}" method="POST" class="grid grid-cols-2 gap-6">
+            <form action="{{ route('pregnant.update', $woman->id) }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-2 gap-6">
+
                 @csrf
                 @method('PUT')
 
                 <!-- Left Column -->
                 <div class="space-y-4">
+<div class="mb-6">
+  <label for="photo" class="block text-sm font-semibold text-gray-800 mb-2">
+    Profile Photo
+  </label>
+
+  <div class="flex items-center gap-6">
+    <!-- Photo Preview -->
+    <div class="relative">
+      <img
+        id="photoPreview"
+        src="{{ $woman->photo ? asset('storage/pregnants/' . $woman->photo) : 'https://cdn-icons-png.flaticon.com/512/847/847969.png' }}"
+        alt="Pregnant photo"
+        class="w-32 h-32 object-cover rounded-full border shadow-sm ring-2 ring-gray-200 transition-transform duration-200 hover:scale-105"
+      >
+      <div
+        class="absolute inset-0 rounded-full bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity duration-200 cursor-pointer"
+        onclick="document.getElementById('photo').click()"
+      >
+        <span class="text-white text-xs font-medium">Change</span>
+      </div>
+    </div>
+
+    <!-- Upload Input -->
+    <div class="flex-1">
+      <input
+        type="file"
+        name="photo"
+        id="photo"
+        accept="image/*"
+        class="hidden"
+        onchange="previewPhoto(event)"
+      >
+      <button
+        type="button"
+        onclick="document.getElementById('photo').click()"
+        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+      >
+        Upload New Photo
+      </button>
+
+      <p class="text-gray-500 text-xs mt-2">Accepted formats: JPG, PNG, GIF (max 2MB)</p>
+    </div>
+  </div>
+</div>
                     <div>
                         <label class="block text-sm font-medium">Full Name</label>
                         <input type="text" name="prgname" value="{{ old('prgname', $woman->prgname) }}" class="w-full border rounded px-3 py-2" required>
@@ -80,6 +125,7 @@
                         <label class="block text-sm font-medium">Age</label>
                         <input type="number" id="prgage" name="prgage" value="{{ old('prgage', $woman->prgage) }}" class="w-full border rounded px-3 py-2" required readonly>
                     </div>
+
 
                     <div>
                         <label class="block text-sm font-medium">Date of Birth</label>
@@ -257,21 +303,63 @@
             </tbody>
         </table>
 
+        @if($woman->completedImmunizationRecords && $woman->completedImmunizationRecords->count() > 0)
+    <h3 class="text-2xl font-bold mb-4 mt-8">🗂️ Completed Immunization Records</h3>
+
+    <table class="w-full border-collapse bg-white shadow-lg mb-6">
+        <thead>
+            <tr class="bg-gray-200 text-sm sm:text-base">
+                <th class="p-3 border">Record ID</th>
+                <th class="p-3 border">Completion Date</th>
+                <th class="p-3 border">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($woman->completedImmunizationRecords as $record)
+                <tr>
+                    <td class="p-3 border text-center">{{ $record->id }}</td>
+                    <td class="p-3 border text-center">{{ $record->created_at->format('F d, Y') }}</td>
+                    <td class="p-3 border text-center">
+                       <button 
+    type="button"
+    onclick="openCompletedRecordModal({{ $woman->id }}, {{ $record->id }})"
+    class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700">
+    👁️ View
+</button>   
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+@endif
+
         {{-- ✅ Print Certificate Button --}}
         @php
             $allComplete = collect($records)->every(fn($record) => !empty($record->visit_date));
         @endphp
 
-        @if ($allComplete)
-            <div class="mt-6 flex justify-end">
-                <form action="{{ route('pregnant.certificate', $woman->id) }}" method="GET">
-    <button type="submit"
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        🖨️ Download Certificate
-    </button>
+       @if ($allComplete)
+    <div class="mt-6 flex justify-end space-x-4">
+        <!-- Save Completed Record -->
+        <form action="{{ route('pregnant.saveCompletedRecord', $woman->id) }}" method="POST">
+            @csrf
+            <button type="submit" 
+                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                💾 Save Completed Record
+            </button>
+        </form>
+
+        <!-- Download Certificate -->
+        <form action="{{ route('pregnant.certificate', $woman->id) }}" method="GET">
+            <button type="submit"
+                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                🖨️ Download Certificate
+            </button>
+        </form>
+    </div>
+@endif
 </form>
-            </div>
-        @endif
+            
 
         <!-- Toast Notification -->
         <div id="toast" class="fixed bottom-6 right-6 hidden p-4 rounded-lg shadow-lg text-white font-medium z-50"></div>
@@ -358,6 +446,89 @@ document.getElementById('clearDatesBtn').addEventListener('click', function () {
             badge.innerHTML = '⏳ Not Started';
         });
     });
+
+    async function openCompletedRecordModal(pregnantId, recordId) {
+  const modal = document.getElementById('completedRecordModal');
+  const content = document.getElementById('completedRecordContent');
+  modal.classList.remove('hidden');
+
+  // show temporary loading message
+  content.innerHTML = `<p class="text-center text-gray-500">Loading...</p>`;
+
+  try {
+    const res = await fetch(`/pregnant/${pregnantId}/completed/${recordId}`);
+    if (!res.ok) throw new Error('Failed to load record');
+    const data = await res.json();
+
+    // Build table dynamically
+    let rows = '';
+    data.records.forEach(r => {
+      rows += `
+        <tr>
+          <td class="p-2 border text-center">${r.visit_number ?? ''}</td>
+          <td class="p-2 border">${r.vaccine_given ?? ''}</td>
+          <td class="p-2 border text-center">${r.visit_date ?? ''}</td>
+          <td class="p-2 border text-center">${r.remarks ?? ''}</td>
+        </tr>`;
+    });
+
+    content.innerHTML = `
+      <div class="mb-4">
+        <p><strong>Pregnant Woman:</strong> ${data.woman_name}</p>
+        <p><strong>Date Completed:</strong> ${data.completed_at}</p>
+      </div>
+      <table class="w-full border-collapse bg-white shadow-lg">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="p-2 border">Visit</th>
+            <th class="p-2 border">Vaccine / Check-up</th>
+            <th class="p-2 border">Date</th>
+            <th class="p-2 border">Remarks</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  } catch (err) {
+    content.innerHTML = `<p class="text-red-500 text-center">Error loading record.</p>`;
+  }
+}
+
+function closeCompletedRecordModal() {
+  document.getElementById('completedRecordModal').classList.add('hidden');
+}
+
+ function previewPhoto(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('photoPreview');
+    const noPhotoText = document.getElementById('noPhotoText');
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        if (noPhotoText) noPhotoText.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 </script>
+
+<!-- Completed Record Modal -->
+<div id="completedRecordModal"
+     class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl w-11/12 max-w-4xl overflow-y-auto max-h-[80vh]">
+    <div class="flex justify-between items-center border-b px-4 py-3">
+      <h3 class="text-xl font-semibold">Completed Immunization Record</h3>
+      <button onclick="closeCompletedRecordModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    </div>
+
+    <div class="p-6" id="completedRecordContent">
+      <!-- content will be injected by JS -->
+      <p class="text-center text-gray-500">Loading...</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>

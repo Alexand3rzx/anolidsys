@@ -14,7 +14,7 @@ class Pregnant extends Model
     protected $fillable = [
         'prgname', 'prgage', 'prgbday', 'prgaddress', 'prgtimes','prgoccupation',
         'prgreligion', 'prgmother_name', 'partner_name', 'partner_age',
-        'partner_bday', 'partner_occupation', 'partner_religion', 'partner_number','purok'
+        'partner_bday', 'partner_occupation', 'partner_religion', 'partner_number','purok','photo'
     ];
 
     public function firstPregnancyRecords()
@@ -30,6 +30,11 @@ public function secondToFifthPregnancyRecords()
 public function sixthPregnancyRecords()
 {
     return $this->hasMany(SixthPregnancyImmunization::class, 'pregnant_id');
+}
+
+public function completedImmunizationRecords()
+{
+    return $this->hasMany(\App\Models\CompletedImmunizationRecord::class);
 }
 }
 

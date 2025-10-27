@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Medicine;
 use App\Models\MedicineRequest;
+use App\Models\MedicineBatch;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,54 +17,51 @@ class MedicineRequestController extends Controller
     /**
      * Store a new medicine request (Useradmin side).
      */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'medicine_id' => 'required|exists:medicines,id',
-            'quantity' => 'required|integer|min:1',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'medicine_id' => 'required|exists:medicines,id',
+        'quantity' => 'required|integer|min:1',
+    ]);
 
-        $user = Auth::user();
-        $medicine = Medicine::find($request->medicine_id);
-        $medicineName = $medicine->name ?? 'Unknown Medicine';
+    $user = Auth::user();
+    $medicine = Medicine::findOrFail($request->medicine_id);
 
-        // Check for existing pending request
-        $existingRequest = MedicineRequest::where('user_id', $user->id)
-            ->where('medicine_id', $medicine->id)
-            ->where('status', 'pending')
-            ->first();
+    // 🧾 Check existing pending request
+    $existingRequest = MedicineRequest::where('user_id', $user->id)
+        ->where('medicine_id', $medicine->id)
+        ->where('status', 'pending')
+        ->first();
 
-        if ($existingRequest) {
-            $existingRequest->quantity += $request->quantity;
-            $existingRequest->save();
+    if ($existingRequest) {
+        $existingRequest->quantity += $request->quantity;
+        $existingRequest->save();
 
-            // Notify admin of update
-            Notification::create([
-                'user_id' => $user->id,
-                'target_role' => 'admin',
-                'message' => "Purok {$user->purok} updated a pending request for {$medicineName}.",
-            ]);
-
-            return back()->with('success', 'Updated existing pending request.');
-        }
-
-        MedicineRequest::create([
-            'user_id' => $user->id,
-            'medicine_id' => $medicine->id,
-            'quantity' => $request->quantity,
-            'status' => 'pending',
-        ]);
-
-        // Notify admin of new request
         Notification::create([
             'user_id' => $user->id,
             'target_role' => 'admin',
-            'message' => "Purok {$user->purok} requested medicine: {$medicineName}.",
+            'message' => "Purok {$user->purok} updated a pending request for {$medicine->name}.",
         ]);
 
-        return back()->with('success', 'Medicine request sent successfully.');
+        return back()->with('success', 'Updated existing pending request.');
     }
 
+    // 💾 Create new request (no batch involved)
+    MedicineRequest::create([
+        'user_id' => $user->id,
+        'medicine_id' => $medicine->id,
+        'quantity' => $request->quantity,
+        'status' => 'pending',
+    ]);
+
+    Notification::create([
+        'user_id' => $user->id,
+        'target_role' => 'admin',
+        'message' => "Purok {$user->purok} requested {$medicine->name}.",
+    ]);
+
+    return back()->with('success', 'Medicine request sent successfully.');
+}
     /**
      * Admin approves a request (with pickup code & date)
      */
@@ -172,24 +170,34 @@ class MedicineRequestController extends Controller
      * User view — show available admin medicines & my requests
      */
     public function requestPage(Request $request)
-    {
-        $query = Medicine::where('purok', 'adminpurok')
-            ->select('id', 'name', 'details', 'expiration', DB::raw('SUM(stock) as stock'))
-            ->groupBy('id', 'name', 'details', 'expiration');
+{
+    $query = DB::table('medicine_batch_medicine as mbm')
+        ->join('medicines as m', 'mbm.medicine_id', '=', 'm.id')
+        ->join('medicine_batches as b', 'mbm.batch_id', '=', 'b.id')
+        ->where('m.purok', 'adminpurok')
+        ->select(
+            'm.id as medicine_id',
+            'm.name',
+            'm.details',
+            'b.id as batch_id',
+            'b.batch_number',
+            'm.stock', // ✅ stock now fetched from medicines table
+            'm.expiration' // ✅ expiration from medicines
+        );
 
-        if ($request->filled('search')) {
-            $query->where('name', 'like', "%{$request->search}%");
-        }
-
-        $adminMedicines = $query->get();
-        $myRequests = MedicineRequest::with('medicine')
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('medicines.request', compact('adminMedicines', 'myRequests'));
+    if ($request->filled('search')) {
+        $query->where('m.name', 'like', "%{$request->search}%");
     }
 
+    $adminMedicines = $query->orderBy('m.name')->get();
+
+    $myRequests = MedicineRequest::with('medicine')
+        ->where('user_id', Auth::id())
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('medicines.request', compact('adminMedicines', 'myRequests'));
+}
     /**
      * Admin view — see all requests
      */

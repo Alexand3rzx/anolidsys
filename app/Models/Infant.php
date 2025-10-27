@@ -10,6 +10,7 @@ class Infant extends Model
     use HasFactory;
 
     protected $fillable = [
+          'infant_code', 
         'child_name',
         'child_bday',
         'child_place',

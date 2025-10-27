@@ -60,43 +60,56 @@
 
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
-            <div class="flex justify-between mb-4">
-                <a href="{{ route('medicines.index') }}" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">← Back</a>
-                <input type="text" id="medicineSearch" placeholder="🔍 Live search..." class="px-4 py-2 border rounded w-64 bg-gray-100 focus:outline-none">
-            </div>
+           <div class="flex justify-between mb-4">
+    <a href="{{ route('medicines.index') }}" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">← Back</a>
+    <div class="flex items-center space-x-2">
+        <select id="batchFilter" class="border rounded px-3 py-2 bg-gray-100">
+            <option value="">All Batches</option>
+            @foreach($adminMedicines->unique('batch_number') as $item)
+                <option value="{{ $item->batch_number }}">{{ $item->batch_number }}</option>
+            @endforeach
+        </select>
+        <input type="text" id="medicineSearch" placeholder="🔍 Live search..." class="px-4 py-2 border rounded w-64 bg-gray-100 focus:outline-none">
+    </div>
+</div>
 
-            <table class="min-w-full bg-white border border-gray-200" id="medicineTable">
-                <thead>
-                    <tr class="text-left bg-gray-100">
-                        <th class="px-4 py-2">Name</th>
-                        <th class="px-4 py-2">Details</th>
-                        <th class="px-4 py-2 text-center">Stock</th>
-                        <th class="px-4 py-2 text-center">Request Qty</th>
-                        <th class="px-4 py-2 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($adminMedicines as $medicine)
-                    <tr class="border-b">
-                        <td class="px-4 py-2">{{ $medicine->name }}</td>
-                        <td class="px-4 py-2">{{ $medicine->details }}</td>
-                        <td class="px-4 py-2 text-center">{{ $medicine->stock }}</td>
-                        <td class="px-4 py-2 text-center">
-                            <form action="{{ route('medicine-requests.store') }}" method="POST" class="requestForm">
-                                @csrf
-                                <input type="hidden" name="medicine_id" value="{{ $medicine->id }}">
-                                <input type="number" name="quantity" min="1" max="{{ $medicine->stock }}" class="w-20 border rounded p-1 text-center" required>
-                        </td>
-                        <td class="px-4 py-2 text-center">
-                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Request</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="5" class="text-center py-6 text-gray-500">🚫 No medicines available.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+<table class="min-w-full bg-white border border-gray-200" id="medicineTable">
+    <thead>
+        <tr class="text-left bg-gray-100">
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Details</th>
+            <th class="px-4 py-2">Batch</th>
+            <th class="px-4 py-2">Expiration</th>
+            <th class="px-4 py-2 text-center">Stock</th>
+            <th class="px-4 py-2 text-center">Qty</th>
+            <th class="px-4 py-2 text-center">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse($adminMedicines as $medicine)
+        <tr class="border-b" data-batch="{{ $medicine->batch_number }}">
+            <td class="px-4 py-2">{{ $medicine->name }}</td>
+            <td class="px-4 py-2">{{ $medicine->details }}</td>
+            <td class="px-4 py-2">{{ $medicine->batch_number ?? '—' }}</td>
+            <td class="px-4 py-2">{{ \Carbon\Carbon::parse($medicine->expiration)->format('M d, Y') }}</td>
+            <td class="px-4 py-2 text-center">{{ $medicine->stock }}</td>
+            <td class="px-4 py-2 text-center">
+                <form action="{{ route('medicine-requests.store') }}" method="POST" class="requestForm">
+                    @csrf
+                    <input type="hidden" name="medicine_id" value="{{ $medicine->medicine_id }}">
+                    <input type="hidden" name="batch_id" value="{{ $medicine->batch_id }}">
+                    <input type="number" name="quantity" min="1" max="{{ $medicine->stock }}" class="w-20 border rounded p-1 text-center" required>
+            </td>
+            <td class="px-4 py-2 text-center">
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Request</button>
+                </form>
+            </td>
+        </tr>
+        @empty
+        <tr><td colspan="7" class="text-center py-6 text-gray-500">🚫 No medicines available.</td></tr>
+        @endforelse
+    </tbody>
+</table>
             <!-- My Requests Section -->
 <div class="mt-10 bg-white shadow-sm rounded-lg">
     <div class="p-6">
@@ -155,20 +168,35 @@
 </main>
 </div>
 
+
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("medicineSearch");
+    const batchFilter = document.getElementById("batchFilter");
     const rows = document.querySelectorAll("#medicineTable tbody tr");
-    searchInput.addEventListener("keyup", function () {
-        const term = this.value.toLowerCase();
-        rows.forEach(row => row.style.display = row.innerText.toLowerCase().includes(term) ? "" : "none");
-    });
+
+    function filterTable() {
+        const term = searchInput.value.toLowerCase();
+        const batch = batchFilter.value;
+        rows.forEach(row => {
+            const matchText = row.innerText.toLowerCase().includes(term);
+            const matchBatch = !batch || row.dataset.batch === batch;
+            row.style.display = matchText && matchBatch ? "" : "none";
+        });
+    }
+
+    searchInput.addEventListener("keyup", filterTable);
+    batchFilter.addEventListener("change", filterTable);
+
     document.querySelectorAll(".requestForm").forEach(form => {
         form.addEventListener("submit", e => {
-            if (!confirm("Are you sure you want to request this medicine?")) e.preventDefault();
+            if (!confirm("Are you sure you want to request this medicine batch?")) e.preventDefault();
         });
     });
 });
+
+
 </script>
 
 </body>

@@ -9,16 +9,15 @@ class MedicineRequest extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'medicine_id',
-        'user_id',
-        'quantity',
-        'status',
-        'pickup_code',
-        'pickup_date',
-        'completed_at',
-    ];
-
+   protected $fillable = [
+    'user_id',
+    'medicine_id',
+    'batch_id',
+    'quantity',
+    'status',
+    'pickup_code',
+    'pickup_date',
+];
     protected $dates = [
         'pickup_date',
         'completed_at',

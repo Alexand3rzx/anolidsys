@@ -14,29 +14,36 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class InfantController extends Controller
 {
     // Store a new infant
-    public function store(Request $request)
-    {
-        $request->validate([
-            'child_name' => 'required|string',
-            'child_bday' => 'required|date',
-            'child_place' => 'required|string',
-            'child_address' => 'required|string',
-            'purok' => 'required|string',
-            'child_mother' => 'required|string',
-            'child_father' => 'required|string',
-            'child_gender' => 'required|in:Male,Female',
-            'child_height' => 'required|numeric',
-            'child_weight' => 'required|numeric',
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'child_name' => 'required|string',
+        'child_bday' => 'required|date',
+        'child_place' => 'required|string',
+        'child_address' => 'required|string',
+        'purok' => 'required|string',
+        'child_mother' => 'required|string',
+        'child_father' => 'required|string',
+        'child_gender' => 'required|in:Male,Female',
+        'child_height' => 'required|numeric',
+        'child_weight' => 'required|numeric',
+    ]);
 
-        // Create infant
-        $infant = Infant::create($request->all());
+    // ✅ Generate unique code
+    $lastInfant = Infant::latest('id')->first();
+    $nextNumber = $lastInfant ? intval(substr($lastInfant->infant_code, 4)) + 1 : 1;
+    $code = 'INF-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
 
-        // Create empty immunization record associated with the infant
-        Immunization::create(['infant_id' => $infant->id]);
+    // ✅ Create infant with code
+    $infant = Infant::create(array_merge($request->all(), [
+        'infant_code' => $code,
+    ]));
 
-        return redirect()->route('beneficiaries.index')->with('success', 'Infant added successfully!');
-    }
+    // ✅ Create immunization record
+    Immunization::create(['infant_id' => $infant->id]);
+
+    return redirect()->route('beneficiaries.index')->with('success', 'Infant added successfully!');
+}
 
 public function index(Request $request)
 {
@@ -115,14 +122,20 @@ public function import(Request $request)
 
     $path = $request->file('csv_file')->getRealPath();
 
-    // Open CSV using PHP built-in functions
     if (($handle = fopen($path, 'r')) !== false) {
-        $header = fgetcsv($handle, 1000, ','); // Get header row
+        $header = fgetcsv($handle, 1000, ','); // Read header row
+        $counter = 0;
 
         while (($row = fgetcsv($handle, 1000, ',')) !== false) {
             $data = array_combine($header, $row);
 
+            // ✅ Generate infant_code dynamically
+            $lastInfant = Infant::latest('id')->first();
+            $nextNumber = $lastInfant ? intval(substr($lastInfant->infant_code, 4)) + 1 : 1;
+            $code = 'INF-' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
             $infant = Infant::create([
+                'infant_code' => $code,
                 'child_name' => $data['child_name'] ?? null,
                 'child_bday' => $data['child_bday'] ?? null,
                 'child_place' => $data['child_place'] ?? null,
@@ -136,12 +149,46 @@ public function import(Request $request)
             ]);
 
             Immunization::create(['infant_id' => $infant->id]);
+            $counter++;
         }
 
         fclose($handle);
     }
 
-    return redirect()->back()->with('success', 'Infants imported successfully!');
+    return redirect()->back()->with('success', "Imported {$counter} infants successfully!");
+}
+
+public function downloadTemplate()
+{
+    // Define the CSV headers (matching your import fields)
+    $headers = [
+        'child_name',
+        'child_bday',
+        'child_place',
+        'child_address',
+        'purok',
+        'child_mother',
+        'child_father',
+        'child_gender',
+        'child_height',
+        'child_weight'
+    ];
+
+    // Create a sample row for guidance (optional)
+    $sampleData = [
+        ['Juan Dela Cruz', '2023-05-12', 'San Carlos', 'Purok 1', 'Purok 1', 'Maria Dela Cruz', 'Jose Dela Cruz', 'Male', '50', '3.2'],
+    ];
+
+    // Build CSV content
+    $csvContent = implode(',', $headers) . "\n";
+    foreach ($sampleData as $row) {
+        $csvContent .= implode(',', $row) . "\n";
+    }
+
+    // Download response
+    return response($csvContent)
+        ->header('Content-Type', 'text/csv')
+        ->header('Content-Disposition', 'attachment; filename="infant_template.csv"');
 }
 
 public function generateCertificate($id)
